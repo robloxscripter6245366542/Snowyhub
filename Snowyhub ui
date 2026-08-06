@@ -1,0 +1,2507 @@
+===== SNOWY HUB — PART 1: KEY-SYSTEM UI (clean original source) =====
+
+--[[
+    ╔══════════════════════════════════════════════════════════╗
+    ║          SNOWY HUB — PREMIUM KEY SYSTEM UI v2.0          ║
+    ║         GitHub Key System — Ultimate Edition              ║
+    ║              build: 2026.05.23 | owner-verified           ║
+    ╚══════════════════════════════════════════════════════════╝
+    Features:
+    • Glassmorphism 3-panel layout with inner glow
+    • Falling snow particle system
+    • Animated gradient mesh background
+    • 3D logo with pulsing aura ring
+    • Shimmer sweep effect on buttons
+    • Scale hover animations
+    • Breathing border glow cycle
+    • Staggered spring entrance animations
+    • Parallax cursor depth on all elements
+    Key validation via GitHub-hosted key lists
+    Sets getgenv().SCRIPT_KEY → loads Script Source
+]]
+-- ══════════════════════════════════════════════════════════════
+-- SERVICES
+-- ══════════════════════════════════════════════════════════════
+local TweenService    = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService      = game:GetService("RunService")
+local Players         = game:GetService("Players")
+local CoreGui         = game:GetService("CoreGui")
+local LocalPlayer     = Players.LocalPlayer
+local isJailbreak     = (game.PlaceId == 606849621)
+-- ══════════════════════════════════════════════════════════════
+-- DELTA EXECUTOR COMPATIBILITY SHIM
+-- ══════════════════════════════════════════════════════════════
+-- UI script runs BEFORE the main hub, so it needs its own fallbacks
+-- for executor-specific globals. Without this, Delta users get errors
+-- on buttons that copy text to clipboard, etc.
+pcall(function()
+    -- setclipboard: Delta has it but some forks use toclipboard
+    if not setclipboard then
+        local cb = nil
+        if toclipboard then cb = toclipboard
+        elseif Clipboard and Clipboard.set then cb = function(s) Clipboard:set(s) end
+        else cb = function() end end
+        pcall(function() getgenv().setclipboard = cb end)
+    end
+    -- identifyexecutor: Delta has it on newer builds
+    if not identifyexecutor then
+        identifyexecutor = function() return "Unknown", "0.0.0" end
+        pcall(function() getgenv().identifyexecutor = identifyexecutor end)
+    end
+    -- gethui: fallback to CoreGui if missing
+    if not gethui then
+        gethui = function() return game:GetService("CoreGui") end
+        pcall(function() getgenv().gethui = gethui end)
+    end
+    -- request alias for Server Hop / HTTP buttons
+    if not request then
+        if syn and syn.request then request = syn.request
+        elseif http and http.request then request = http.request
+        elseif http_request then request = http_request end
+        pcall(function() if request then getgenv().request = request end end)
+    end
+end)
+-- ══════════════════════════════════════════════════════════════
+-- JNKIE SDK (Official Library — as per docs.jnkie.com)
+-- Fault-tolerant load: works raw AND when re-wrapped by Jnkie protector
+-- (Jnkie's own loader auto-injects the SDK; calling loadstring again
+-- fails inside their sandbox → "attempt to call a nil value" at line 1)
+-- ══════════════════════════════════════════════════════════════
+local Junkie = nil
+-- Try (1): SDK was already loaded by Jnkie's protector (preferred path)
+if getgenv().Junkie and type(getgenv().Junkie) == "table" then
+    Junkie = getgenv().Junkie
+end
+-- Try (2): Fetch the official SDK ourselves (raw run path)
+if not Junkie then
+    pcall(function()
+        local src = game:HttpGet("https://jnkie.com/sdk/library.lua")
+        if src and #src > 50 then
+            local fn = loadstring(src)
+            if fn then Junkie = fn() end
+        end
+    end)
+end
+-- Try (3): Stub fallback so the rest of the script never crashes
+if not Junkie or type(Junkie) ~= "table" then
+    Junkie = {
+        service    = "",
+        identifier = "",
+        provider   = "Mixed",
+        check_key  = function(key) return false, "Jnkie SDK unavailable - try re-running" end,
+        get_link   = function() return "https://getsnowy.xyz/pricing" end,
+    }
+    warn("[SnowyHub] Jnkie SDK unavailable, using stub. Key validation may not work.")
+end
+-- Cache globally so re-runs reuse the same instance
+getgenv().Junkie = Junkie
+-- ══════════════════════════════════════════════════════════════
+-- [!] MAIN HUB DASHBOARD SETTING (REQUIRED)
+-- ══════════════════════════════════════════════════════════════
+-- The main hub (orginalsrchub.txt) is wrapped by Jnkie and does
+-- its OWN key validation BEFORE our code runs.
+--
+-- To avoid "Invalid key / HWID" popup after redeem:
+--   1. Jnkie Dashboard → Script Panel
+--   2. Find orginalsrchub.txt
+--   3. Set Service = "snowy free hub" (ID 19097)
+--   4. Make sure Keyless Mode is OFF
+--   5. Save & re-upload
+--
+-- Both UI and main hub must use the SAME service (19097).
+-- ══════════════════════════════════════════════════════════════
+local JNKIE_USER_ID       = "1049695"
+local SERVICE_NAME        = "snowy free hub"
+local SERVICE_ID          = "19097"
+getgenv().KEY_TIER     = nil
+getgenv().JD_IS_PREMIUM = nil
+local function configureService()
+    pcall(function()
+        local tier = tostring(getgenv().KEY_TIER or ""):lower()
+        if tier == "premium" then
+            Junkie.service = "snowy hub"
+        else
+            Junkie.service = "snowy free hub"
+        end
+        Junkie.identifier = JNKIE_USER_ID
+        Junkie.provider   = "Mixed"
+    end)
+end
+warn("[SnowyHub] UI Source starting...")
+-- ══════════════════════════════════════════════════════════════
+-- LOGO ASSET
+-- Upload your GIF/PNG to Roblox (Create → Decals) and paste
+-- the asset ID here. Example: "rbxassetid://123456789"
+-- ══════════════════════════════════════════════════════════════
+local LOGO_ASSET_ID = "83386295393884"
+-- ══════════════════════════════════════════════════════════════
+-- PREMIUM DESIGN TOKENS
+-- ══════════════════════════════════════════════════════════════
+local T = {
+    -- Accent palette (icy blue → electric purple)
+    Accent1      = Color3.fromRGB(80, 180, 255),
+    Accent2      = Color3.fromRGB(120, 140, 255),
+    Accent3      = Color3.fromRGB(160, 100, 255),
+    Neon         = Color3.fromRGB(100, 220, 255),
+    -- Status
+    Success      = Color3.fromRGB(45, 225, 130),
+    Error        = Color3.fromRGB(255, 65, 85),
+    Warning      = Color3.fromRGB(255, 195, 60),
+    -- Surfaces (deep cosmic dark)
+    BgDeep       = Color3.fromRGB(4, 6, 14),
+    BgPanel      = Color3.fromRGB(10, 14, 26),
+    BgElevated   = Color3.fromRGB(16, 22, 38),
+    BgInput      = Color3.fromRGB(12, 16, 28),
+    BgGlass      = Color3.fromRGB(20, 28, 48),
+    -- Borders
+    Border       = Color3.fromRGB(30, 40, 65),
+    BorderGlow   = Color3.fromRGB(80, 180, 255),
+    -- Text
+    White        = Color3.fromRGB(240, 248, 255),
+    Grey         = Color3.fromRGB(130, 150, 180),
+    Dim          = Color3.fromRGB(65, 80, 110),
+    -- Sizing
+    Radius       = 16,
+    SmallRadius  = 10,
+}
+-- ══════════════════════════════════════════════════════════════
+-- HELPERS
+-- ══════════════════════════════════════════════════════════════
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) STATIC UI MODE utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+-- Some executors (Hydrogen iOS, older builds, certain Synapse forks) silently
+-- fail or freeze on TweenService:Create / :Play. To guarantee the key-UI
+-- works on ALL executors, tween() now sets the target properties instantly
+-- to their final values instead of animating. The UI ends up at the same
+-- visual "rest state" the tweens would have produced, just without motion.
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)
+local function tween(obj, props, _dur, _style, _dir)
+    if not obj or not props then return end
+    pcall(function()
+        for k, v in pairs(props) do
+            obj[k] = v
+        end
+    end)
+end
+local function corner(p, r)
+    local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r or T.Radius); c.Parent = p; return c
+end
+local function stroke(p, col, thick, trans)
+    local s = Instance.new("UIStroke"); s.Color = col or T.Border; s.Thickness = thick or 1; s.Transparency = trans or 0.5; s.Parent = p; return s
+end
+local function gradient(p, c1, c2, rot)
+    local g = Instance.new("UIGradient")
+    g.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(1, c2)})
+    g.Rotation = rot or 0; g.Parent = p; return g
+end
+local function padding(p, t, b, l, r)
+    local pd = Instance.new("UIPadding"); pd.PaddingTop = UDim.new(0,t); pd.PaddingBottom = UDim.new(0,b); pd.PaddingLeft = UDim.new(0,l); pd.PaddingRight = UDim.new(0,r); pd.Parent = p; return pd
+end
+-- ══════════════════════════════════════════════════════════════
+-- CLEANUP
+-- ══════════════════════════════════════════════════════════════
+if getgenv().__SnowyHubKeyUI then
+    pcall(function() getgenv().__SnowyHubKeyUI:Destroy() end)
+    getgenv().__SnowyHubKeyUI = nil
+end
+-- ══════════════════════════════════════════════════════════════
+-- SCREEN GUI
+-- ══════════════════════════════════════════════════════════════
+local Screen = Instance.new("ScreenGui")
+Screen.Name = game:GetService("HttpService"):GenerateGUID(false):sub(1, 8)
+getgenv().__SnowyHubKeyUI = Screen
+Screen.ZIndexBehavior = Enum.ZIndexBehavior.Global
+Screen.ResetOnSpawn = false
+Screen.IgnoreGuiInset = true
+local function safeParent(gui)
+    local parented = false
+    if not RunService:IsStudio() then
+        if syn and syn.protect_gui then
+            pcall(function() syn.protect_gui(gui); gui.Parent = CoreGui; parented = true end)
+        end
+        if not parented and gethui then
+            pcall(function() gui.Parent = gethui(); parented = true end)
+        end
+        if not parented and get_hidden_gui then
+            pcall(function() gui.Parent = get_hidden_gui(); parented = true end)
+        end
+    end
+    if not parented then
+        pcall(function()
+            gui.Parent = (RunService:IsStudio() and LocalPlayer:WaitForChild("PlayerGui", 5)) or CoreGui
+        end)
+    end
+end
+safeParent(Screen)
+-- ══════════════════════════════════════════════════════════════
+-- BACKGROUND SYSTEM (Clean blurred overlay)
+-- ══════════════════════════════════════════════════════════════
+local bgOverlay = Instance.new("Frame")
+bgOverlay.Size = UDim2.new(1, 0, 1, 0)
+bgOverlay.BackgroundColor3 = Color3.new(0, 0, 0)
+bgOverlay.BackgroundTransparency = 0.5 -- Slight darkening tint
+bgOverlay.BorderSizePixel = 0
+bgOverlay.ZIndex = 1
+bgOverlay.Parent = Screen
+local blurEffect = Instance.new("BlurEffect")
+blurEffect.Size = 0
+blurEffect.Parent = game:GetService("Lighting")
+-- ══════════════════════════════════════════════════════════════
+-- SNOW PARTICLE SYSTEM (Falling snowflakes)
+-- ══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
+-- SNOW PARTICLE SYSTEM (Fixed pool — no runtime allocation)
+-- ══════════════════════════════════════════════════════════════
+local snowPool = {}
+local SNOW_COUNT = 10  -- Fixed pool size, never allocates more
+for i = 1, SNOW_COUNT do
+    local sz = math.random(8, 16)
+    local flake = Instance.new("TextLabel")
+    flake.Size = UDim2.new(0, sz, 0, sz)
+    flake.BackgroundTransparency = 1
+    flake.Text = "❄"
+    flake.TextColor3 = T.White
+    flake.TextSize = sz
+    flake.ZIndex = 3
+    flake.Parent = Screen
+    snowPool[i] = {label = flake, active = false, startTime = 0, duration = 0, startX = 0, endX = 0}
+end
+-- Recycle-based snow loop
+task.spawn(function()
+    while Screen and Screen.Parent do
+        for _, s in ipairs(snowPool) do
+            if not s.active then
+                -- Reuse this flake
+                local dur = math.random(50, 90) / 10
+                local startX = math.random() * 0.95 + 0.025
+                local drift = math.random(-50, 50)
+                s.active = true
+                s.label.Position = UDim2.new(startX, 0, -0.05, 0)
+                s.label.TextTransparency = math.random(30, 70) / 100
+                s.label.Rotation = math.random(0, 360)
+                s.label.Visible = true
+                tween(s.label, {
+                    Position = UDim2.new(startX, drift, 1.08, 0),
+                    TextTransparency = 1
+                }, dur, Enum.EasingStyle.Linear)
+                task.delay(dur, function()
+                    s.active = false
+                    pcall(function() s.label.Visible = false end)
+                end)
+                break  -- Only spawn one per loop tick
+            end
+        end
+        task.wait(math.random(8, 20) / 10)  -- Slower spawn rate
+    end
+end)
+-- ══════════════════════════════════════════════════════════════
+-- FLOATING AMBIENT ORBS (Removed per user request)
+-- ══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════
+-- MAIN 3-PANEL CONTAINER
+-- ══════════════════════════════════════════════════════════════
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 535, 0, 500)
+mainFrame.Position = UDim2.new(0.5, -267.5, 0.5, -250)
+mainFrame.BackgroundTransparency = 1
+mainFrame.BorderSizePixel = 0
+mainFrame.ZIndex = 10
+mainFrame.Parent = Screen
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+-- PANEL BUILDER (Glassmorphism card)
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+local function createPanel(size, position, zIndex)
+    local panel = Instance.new("Frame")
+    panel.Size = size
+    panel.Position = position
+    panel.BackgroundColor3 = T.BgPanel
+    panel.BackgroundTransparency = 0.08
+    panel.BorderSizePixel = 0
+    local zIdx = zIndex or 11
+    panel.ZIndex = zIdx
+    panel.ClipsDescendants = true
+    panel.Parent = mainFrame
+    corner(panel, 18)
+    -- Inner glow layer (glass effect)
+    local glass = Instance.new("Frame")
+    glass.Size = UDim2.new(1, 0, 0.4, 0)
+    glass.Position = UDim2.new(0, 0, 0, 0)
+    glass.BackgroundColor3 = T.White
+    glass.BackgroundTransparency = 0.96
+    glass.BorderSizePixel = 0
+    glass.ZIndex = zIdx + 1
+    glass.Parent = panel
+    corner(glass, 18)
+    gradient(glass, Color3.new(1,1,1), Color3.new(1,1,1), 90)
+    -- Border glow
+    local s = stroke(panel, T.Accent1, 1.5, 0.55)
+    return panel, s
+end
+-- ═══════════════════════════════════════════════════════════
+-- LEFT PANEL — User Info
+-- ═══════════════════════════════════════════════════════════
+local leftPanel, leftStroke = createPanel(
+    UDim2.new(0, 195, 1, 0),
+    UDim2.new(0, 0, 0, 0)
+)
+-- Header
+local function makeHeader(parent, text, iconAssetId, yPos)
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, -20, 0, 28)
+    container.Position = UDim2.new(0, 10, 0, yPos or 10)
+    container.BackgroundTransparency = 1
+    container.ZIndex = 14
+    container.Parent = parent
+
+    local textOffset = 0
+    if iconAssetId and iconAssetId:find("rbxassetid://") then
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 14, 0, 14)
+        icon.Position = UDim2.new(0, 0, 0.5, -7)
+        icon.BackgroundTransparency = 1
+        icon.Image = iconAssetId
+        icon.ImageColor3 = T.Accent1
+        icon.ZIndex = 14
+        icon.Parent = container
+        textOffset = 20
+    end
+
+    local h = Instance.new("TextLabel")
+    h.Size = UDim2.new(1, -textOffset, 1, 0)
+    h.Position = UDim2.new(0, textOffset, 0, 0)
+    h.BackgroundTransparency = 1
+    h.Text = text
+    h.TextColor3 = T.Accent1
+    h.TextSize = 14
+    h.Font = Enum.Font.GothamBlack
+    h.TextXAlignment = Enum.TextXAlignment.Left
+    h.ZIndex = 14
+    h.Parent = container
+    return container
+end
+-- Close button helper
+local function makeClose(parent)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 22, 0, 22)
+    btn.Position = UDim2.new(1, -30, 0, 12)
+    btn.BackgroundColor3 = T.Error
+    btn.BackgroundTransparency = 0.85
+    btn.Text = ""
+    btn.ZIndex = 15
+    btn.AutoButtonColor = false
+    btn.Parent = parent
+    corner(btn, 6)
+    
+    local icon = Instance.new("ImageLabel")
+    icon.Size = UDim2.new(0, 10, 0, 10)
+    icon.Position = UDim2.new(0.5, -5, 0.5, -5)
+    icon.BackgroundTransparency = 1
+    icon.Image = "rbxassetid://116396312853810" -- x
+    icon.ImageColor3 = T.Grey
+    icon.ZIndex = 15
+    icon.Parent = btn
+
+    btn.MouseEnter:Connect(function()
+        tween(btn, {BackgroundTransparency = 0.4}, 0.15)
+        tween(icon, {ImageColor3 = T.Error}, 0.15)
+    end)
+    btn.MouseLeave:Connect(function()
+        tween(btn, {BackgroundTransparency = 0.85}, 0.15)
+        tween(icon, {ImageColor3 = T.Grey}, 0.15)
+    end)
+    return btn
+end
+-- Minimize button helper
+local function makeMinimize(parent)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 22, 0, 22)
+    btn.Position = UDim2.new(1, -56, 0, 12)
+    btn.BackgroundColor3 = T.Accent1
+    btn.BackgroundTransparency = 0.8
+    btn.Text = ""
+    btn.ZIndex = 15
+    btn.AutoButtonColor = false
+    btn.Parent = parent
+    corner(btn, 6)
+    
+    local icon = Instance.new("ImageLabel")
+    icon.Size = UDim2.new(0, 10, 0, 10)
+    icon.Position = UDim2.new(0.5, -5, 0.5, -5)
+    icon.BackgroundTransparency = 1
+    icon.Image = "rbxassetid://95070996149109" -- minus
+    icon.ImageColor3 = T.White
+    icon.ZIndex = 15
+    icon.Parent = btn
+
+    btn.MouseEnter:Connect(function()
+        tween(btn, {BackgroundTransparency = 0.2}, 0.15)
+    end)
+    btn.MouseLeave:Connect(function()
+        tween(btn, {BackgroundTransparency = 0.8}, 0.15)
+    end)
+    return btn
+end
+makeHeader(leftPanel, "User Info", "rbxassetid://114567720540659")
+local leftClose = makeClose(leftPanel)
+local leftMin = makeMinimize(leftPanel)
+-- Glowing separator line
+local function makeSeparator(parent, yPos)
+    local sep = Instance.new("Frame")
+    sep.Size = UDim2.new(1, -24, 0, 1)
+    sep.Position = UDim2.new(0, 12, 0, yPos)
+    sep.BackgroundColor3 = T.Accent1
+    sep.BackgroundTransparency = 0.7
+    sep.BorderSizePixel = 0
+    sep.ZIndex = 14
+    sep.Parent = parent
+    return sep
+end
+makeSeparator(leftPanel, 40)
+-- ═══ PREMIUM AVATAR RING ═══
+-- Outer rotating RGB glow ring
+local avatarRing = Instance.new("Frame")
+avatarRing.Size = UDim2.new(0, 84, 0, 84)
+avatarRing.Position = UDim2.new(0.5, -42, 0, 50)
+avatarRing.BackgroundColor3 = T.Accent1
+avatarRing.BackgroundTransparency = 0
+avatarRing.BorderSizePixel = 0
+avatarRing.ZIndex = 13
+avatarRing.Parent = leftPanel
+corner(avatarRing, 42)
+local ringGrad = Instance.new("UIGradient")
+ringGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, T.Accent1),
+    ColorSequenceKeypoint.new(0.5, T.Neon),
+    ColorSequenceKeypoint.new(1, T.Accent3),
+})
+ringGrad.Rotation = 0
+ringGrad.Parent = avatarRing
+-- (Ring gradient rotation handled in master render loop)
+-- Inner dark background ring
+local avatarBg = Instance.new("Frame")
+avatarBg.Size = UDim2.new(1, -6, 1, -6)
+avatarBg.Position = UDim2.new(0, 3, 0, 3)
+avatarBg.BackgroundColor3 = T.BgPanel
+avatarBg.BorderSizePixel = 0
+avatarBg.ZIndex = 14
+avatarBg.Parent = avatarRing
+corner(avatarBg, 39)
+-- Avatar image
+local avatar = Instance.new("ImageLabel")
+avatar.Size = UDim2.new(1, -4, 1, -4)
+avatar.Position = UDim2.new(0, 2, 0, 2)
+avatar.BackgroundTransparency = 1
+avatar.ZIndex = 15
+avatar.Parent = avatarBg
+corner(avatar, 37)
+pcall(function()
+    local content = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+    avatar.Image = content
+end)
+-- Online dot (bottom-right of avatar)
+local onlineDot = Instance.new("Frame")
+onlineDot.Size = UDim2.new(0, 14, 0, 14)
+onlineDot.Position = UDim2.new(1, -14, 1, -14)
+onlineDot.BackgroundColor3 = T.Success
+onlineDot.BorderSizePixel = 0
+onlineDot.ZIndex = 17
+onlineDot.Parent = avatarBg
+corner(onlineDot, 7)
+stroke(onlineDot, T.BgPanel, 2, 0)
+-- (Online dot pulse handled in master render loop)
+-- ═══ DISPLAY NAME + USERNAME ═══
+local displayName = LocalPlayer and LocalPlayer.DisplayName or "Player"
+local userName = LocalPlayer and LocalPlayer.Name or "guest"
+local dispLabel = Instance.new("TextLabel")
+dispLabel.Size = UDim2.new(1, -16, 0, 16)
+dispLabel.Position = UDim2.new(0, 8, 0, 142)
+dispLabel.BackgroundTransparency = 1
+dispLabel.Text = displayName
+dispLabel.TextColor3 = T.White
+dispLabel.TextSize = 13
+dispLabel.Font = Enum.Font.GothamBlack
+dispLabel.TextXAlignment = Enum.TextXAlignment.Center
+dispLabel.TextTruncate = Enum.TextTruncate.AtEnd
+dispLabel.ZIndex = 14
+dispLabel.Parent = leftPanel
+gradient(dispLabel, T.Accent1, T.Neon, 0)
+local userLabel = Instance.new("TextLabel")
+userLabel.Size = UDim2.new(1, -16, 0, 14)
+userLabel.Position = UDim2.new(0, 8, 0, 158)
+userLabel.BackgroundTransparency = 1
+userLabel.Text = "@" .. userName
+userLabel.TextColor3 = T.Dim
+userLabel.TextSize = 10
+userLabel.Font = Enum.Font.Gotham
+userLabel.TextXAlignment = Enum.TextXAlignment.Center
+userLabel.ZIndex = 14
+userLabel.Parent = leftPanel
+makeSeparator(leftPanel, 178)
+-- ═══ PREMIUM INFO CARDS ═══
+local hwid = "Unknown"
+pcall(function()
+    hwid = tostring(game:GetService("RbxAnalyticsService"):GetClientId()):sub(1, 12) .. "..."
+end)
+local execName = "Unknown"
+pcall(function()
+    execName = (identifyexecutor and identifyexecutor() or "Unknown")
+end)
+local gameName = "Unknown Game"
+pcall(function() gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
+local infoCards = {
+    {icon = "rbxassetid://109718589733073", label = "Executor", value = execName, color = T.Neon}, -- zap
+    {icon = "rbxassetid://103798905446648", label = "Device", value = "PC", color = T.Accent1},   -- laptop
+    {icon = "rbxassetid://116918931002434", label = "HWID", value = hwid, color = T.Accent3},     -- key-round
+    {icon = "rbxassetid://99293705721130", label = "Game", value = gameName, color = T.Success},  -- gamepad-2
+}
+local cardStartY = 186
+for i, card in ipairs(infoCards) do
+    local cardY = cardStartY + (i-1) * 34
+    local cardBg = Instance.new("Frame")
+    cardBg.Size = UDim2.new(1, -20, 0, 28)
+    cardBg.Position = UDim2.new(0, 10, 0, cardY)
+    cardBg.BackgroundColor3 = T.BgElevated
+    cardBg.BackgroundTransparency = 0.5
+    cardBg.BorderSizePixel = 0
+    cardBg.ZIndex = 14
+    cardBg.Parent = leftPanel
+    corner(cardBg, 7)
+    stroke(cardBg, card.color, 1, 0.8)
+    local iconL = Instance.new("ImageLabel")
+    iconL.Size = UDim2.new(0, 12, 0, 12)
+    iconL.Position = UDim2.new(0, 8, 0.5, -6)
+    iconL.BackgroundTransparency = 1
+    iconL.Image = card.icon
+    iconL.ImageColor3 = card.color
+    iconL.ZIndex = 15
+    iconL.Parent = cardBg
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0, 50, 0, 10)
+    lbl.Position = UDim2.new(0, 26, 0, 3)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = card.label:upper()
+    lbl.TextColor3 = T.Dim
+    lbl.TextSize = 7
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.ZIndex = 15
+    lbl.Parent = cardBg
+    local val = Instance.new("TextLabel")
+    val.Size = UDim2.new(1, -28, 0, 13)
+    val.Position = UDim2.new(0, 26, 0, 13)
+    val.BackgroundTransparency = 1
+    val.Text = card.value
+    val.TextColor3 = card.color
+    val.TextSize = 10
+    val.Font = Enum.Font.GothamMedium
+    val.TextXAlignment = Enum.TextXAlignment.Left
+    val.TextTruncate = Enum.TextTruncate.AtEnd
+    val.ZIndex = 15
+    val.Parent = cardBg
+end
+makeSeparator(leftPanel, cardStartY + #infoCards * 34 + 4)
+local sepY = cardStartY + #infoCards * 34 + 10
+-- ═══ SESSION UPTIME + PING ROW ═══
+local sessionStart = os.clock()
+local uptimeCard = Instance.new("Frame")
+uptimeCard.Size = UDim2.new(0.48, -12, 0, 36)
+uptimeCard.Position = UDim2.new(0, 10, 0, sepY)
+uptimeCard.BackgroundColor3 = T.BgElevated
+uptimeCard.BackgroundTransparency = 0.4
+uptimeCard.BorderSizePixel = 0
+uptimeCard.ZIndex = 14
+uptimeCard.Parent = leftPanel
+corner(uptimeCard, 8)
+local uptimeIcon = Instance.new("TextLabel")
+uptimeIcon.Size = UDim2.new(1, -20, 0, 14)
+uptimeIcon.Position = UDim2.new(0, 18, 0, 2)
+uptimeIcon.BackgroundTransparency = 1
+uptimeIcon.Text = "Session"
+uptimeIcon.TextColor3 = T.Dim
+uptimeIcon.TextSize = 8
+uptimeIcon.Font = Enum.Font.GothamBold
+uptimeIcon.TextXAlignment = Enum.TextXAlignment.Left
+uptimeIcon.ZIndex = 15
+uptimeIcon.Parent = uptimeCard
+
+local uptimeImg = Instance.new("ImageLabel")
+uptimeImg.Size = UDim2.new(0, 10, 0, 10)
+uptimeImg.Position = UDim2.new(0, 6, 0, 4)
+uptimeImg.BackgroundTransparency = 1
+uptimeImg.Image = "rbxassetid://136533241128438" -- clock
+uptimeImg.ImageColor3 = T.Dim
+uptimeImg.ZIndex = 15
+uptimeImg.Parent = uptimeCard
+local uptimeVal = Instance.new("TextLabel")
+uptimeVal.Size = UDim2.new(1, 0, 0, 16)
+uptimeVal.Position = UDim2.new(0, 0, 0, 16)
+uptimeVal.BackgroundTransparency = 1
+uptimeVal.Text = "00:00"
+uptimeVal.TextColor3 = T.Neon
+uptimeVal.TextSize = 12
+uptimeVal.Font = Enum.Font.GothamBlack
+uptimeVal.ZIndex = 15
+uptimeVal.Parent = uptimeCard
+task.spawn(function()
+    while Screen and Screen.Parent do
+        local elapsed = math.floor(os.clock() - sessionStart)
+        local m = math.floor(elapsed / 60)
+        local s = elapsed % 60
+        pcall(function() uptimeVal.Text = string.format("%02d:%02d", m, s) end)
+        task.wait(1)
+    end
+end)
+-- Ping card
+local pingCard = Instance.new("Frame")
+pingCard.Size = UDim2.new(0.48, -8, 0, 36)
+pingCard.Position = UDim2.new(0.52, -2, 0, sepY)
+pingCard.BackgroundColor3 = T.BgElevated
+pingCard.BackgroundTransparency = 0.4
+pingCard.BorderSizePixel = 0
+pingCard.ZIndex = 14
+pingCard.Parent = leftPanel
+corner(pingCard, 8)
+local pingIcon = Instance.new("TextLabel")
+pingIcon.Size = UDim2.new(1, -20, 0, 14)
+pingIcon.Position = UDim2.new(0, 18, 0, 2)
+pingIcon.BackgroundTransparency = 1
+pingIcon.Text = "Ping"
+pingIcon.TextColor3 = T.Dim
+pingIcon.TextSize = 8
+pingIcon.Font = Enum.Font.GothamBold
+pingIcon.TextXAlignment = Enum.TextXAlignment.Left
+pingIcon.ZIndex = 15
+pingIcon.Parent = pingCard
+
+local pingImg = Instance.new("ImageLabel")
+pingImg.Size = UDim2.new(0, 10, 0, 10)
+pingImg.Position = UDim2.new(0, 6, 0, 4)
+pingImg.BackgroundTransparency = 1
+pingImg.Image = "rbxassetid://104941258142372" -- wifi
+pingImg.ImageColor3 = T.Dim
+pingImg.ZIndex = 15
+pingImg.Parent = pingCard
+local pingVal = Instance.new("TextLabel")
+pingVal.Size = UDim2.new(1, 0, 0, 16)
+pingVal.Position = UDim2.new(0, 0, 0, 16)
+pingVal.BackgroundTransparency = 1
+pingVal.Text = "-- ms"
+pingVal.TextColor3 = T.Success
+pingVal.TextSize = 12
+pingVal.Font = Enum.Font.GothamBlack
+pingVal.ZIndex = 15
+pingVal.Parent = pingCard
+task.spawn(function()
+    while Screen and Screen.Parent do
+        pcall(function()
+            local stats = game:GetService("Stats")
+            local ping = math.floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+            pingVal.Text = tostring(ping) .. " ms"
+            pingVal.TextColor3 = ping < 80 and T.Success or (ping < 150 and T.Warning or T.Error)
+        end)
+        task.wait(3)  -- Slower ping poll (was 2s)
+    end
+end)
+makeSeparator(leftPanel, sepY + 44)
+-- ═══ CLOCK SECTION ═══
+local clockY = sepY + 50
+local clockLabel = Instance.new("TextLabel")
+clockLabel.Size = UDim2.new(1, -16, 0, 22)
+clockLabel.Position = UDim2.new(0, 8, 0, clockY)
+clockLabel.BackgroundTransparency = 1
+clockLabel.Text = os.date("%I:%M:%S %p")
+clockLabel.TextColor3 = T.Neon
+clockLabel.TextSize = 18
+clockLabel.Font = Enum.Font.GothamBlack
+clockLabel.TextXAlignment = Enum.TextXAlignment.Center
+clockLabel.ZIndex = 14
+clockLabel.Parent = leftPanel
+local dateLabel = Instance.new("TextLabel")
+dateLabel.Size = UDim2.new(1, -16, 0, 13)
+dateLabel.Position = UDim2.new(0, 8, 0, clockY + 23)
+dateLabel.BackgroundTransparency = 1
+dateLabel.Text = os.date("%B %d, %Y")
+dateLabel.TextColor3 = T.Dim
+dateLabel.TextSize = 10
+dateLabel.Font = Enum.Font.Gotham
+dateLabel.TextXAlignment = Enum.TextXAlignment.Center
+dateLabel.ZIndex = 14
+dateLabel.Parent = leftPanel
+-- Merged clock + uptime into single 1s loop (was 2 separate loops)
+task.spawn(function()
+    while Screen and Screen.Parent do
+        pcall(function()
+            clockLabel.Text = os.date("%I:%M:%S %p")
+            local elapsed = math.floor(os.clock() - sessionStart)
+            uptimeVal.Text = string.format("%02d:%02d", math.floor(elapsed/60), elapsed%60)
+        end)
+        task.wait(1)
+    end
+end)
+-- ═══ PREMIUM STATUS BAR (bottom) ═══
+local statusBadge = Instance.new("Frame")
+statusBadge.Size = UDim2.new(1, -20, 0, 32)
+statusBadge.Position = UDim2.new(0, 10, 1, -42)
+statusBadge.BackgroundColor3 = T.Success
+statusBadge.BackgroundTransparency = 0.85
+statusBadge.BorderSizePixel = 0
+statusBadge.ZIndex = 14
+statusBadge.Parent = leftPanel
+corner(statusBadge, 8)
+stroke(statusBadge, T.Success, 1, 0.6)
+gradient(statusBadge, Color3.fromRGB(0, 60, 30), Color3.fromRGB(0, 80, 40), 0)
+local statusDot = Instance.new("Frame")
+statusDot.Size = UDim2.new(0, 8, 0, 8)
+statusDot.Position = UDim2.new(0, 14, 0.5, -4)
+statusDot.BackgroundColor3 = T.Success
+statusDot.BorderSizePixel = 0
+statusDot.ZIndex = 16
+statusDot.Parent = statusBadge
+corner(statusDot, 4)
+-- (statusDot pulse handled in master render loop)
+local statusText = Instance.new("TextLabel")
+statusText.Size = UDim2.new(1, -30, 1, 0)
+statusText.Position = UDim2.new(0, 28, 0, 0)
+statusText.BackgroundTransparency = 1
+statusText.Text = "Connected to Snowy Hub"
+statusText.TextColor3 = T.Success
+statusText.TextSize = 10
+statusText.Font = Enum.Font.GothamBold
+statusText.TextXAlignment = Enum.TextXAlignment.Left
+statusText.ZIndex = 15
+statusText.Parent = statusBadge
+-- ═══════════════════════════════════════════════════════════
+-- CENTER PANEL — Key System (Main)
+-- ═══════════════════════════════════════════════════════════
+local centerPanel, centerStroke = createPanel(
+    UDim2.new(0, 340, 1, 0),
+    UDim2.new(0, 205, 0, 0)
+)
+-- (Rainbow border handled in master render loop)
+-- Title bar
+local titleRow = Instance.new("Frame")
+titleRow.Size = UDim2.new(1, 0, 0, 40)
+titleRow.BackgroundTransparency = 1
+titleRow.ZIndex = 14
+titleRow.Parent = centerPanel
+local snowEmoji = Instance.new("ImageLabel")
+snowEmoji.Size = UDim2.new(0, 20, 0, 20)
+snowEmoji.Position = UDim2.new(0, 16, 0, 17)
+snowEmoji.BackgroundTransparency = 1
+snowEmoji.Image = "rbxassetid://70879271596915" -- snowflake
+snowEmoji.ImageColor3 = T.White
+snowEmoji.ZIndex = 14
+snowEmoji.Parent = centerPanel
+-- Removed disjoint snowflake spin loop (Moved to master render)
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0, 220, 0, 30)
+title.Position = UDim2.new(0, 42, 0, 12)
+title.BackgroundTransparency = 1
+title.Text = "Snowy Hub"
+title.TextColor3 = T.White
+title.TextSize = 22
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.ZIndex = 14
+title.Parent = centerPanel
+local titleGradient = gradient(title, T.White, Color3.fromRGB(180, 210, 255), 45)
+
+local scanLine = Instance.new("Frame")
+scanLine.Size = UDim2.new(1, 0, 0, 2)
+scanLine.Position = UDim2.new(0, 0, -0.02, 0)
+scanLine.BackgroundColor3 = T.Neon
+scanLine.BackgroundTransparency = 0.6
+scanLine.BorderSizePixel = 0
+scanLine.ZIndex = 20
+scanLine.Parent = centerPanel
+gradient(scanLine, Color3.new(0,0,0), T.Neon, 0)
+task.spawn(function()
+    while Screen and Screen.Parent do
+        task.wait(6)
+        scanLine.Position = UDim2.new(0, 0, -0.02, 0)
+        tween(scanLine, {Position = UDim2.new(0, 0, 1.02, 0)}, 1.8, Enum.EasingStyle.Quad)
+        task.wait(1.8)
+    end
+end)
+
+local mouseAura = Instance.new("Frame")
+mouseAura.Size = UDim2.new(0, 180, 0, 180)
+mouseAura.BackgroundColor3 = T.Accent1
+mouseAura.BackgroundTransparency = 0.92
+mouseAura.BorderSizePixel = 0
+mouseAura.ZIndex = 11
+mouseAura.Parent = centerPanel
+corner(mouseAura, 90)
+
+-- Version badge
+local verBadge = Instance.new("Frame")
+verBadge.Size = UDim2.new(0, 36, 0, 16)
+verBadge.Position = UDim2.new(0, 160, 0, 20)
+verBadge.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
+verBadge.BackgroundTransparency = 0.4
+verBadge.BorderSizePixel = 0
+verBadge.ZIndex = 14
+verBadge.Parent = centerPanel
+corner(verBadge, 5)
+stroke(verBadge, T.Border, 1, 0.4)
+
+local verText = Instance.new("TextLabel")
+verText.Size = UDim2.new(1, 0, 1, 0)
+verText.BackgroundTransparency = 1
+verText.Text = "v2.0"
+verText.TextColor3 = Color3.fromRGB(140, 160, 255)
+verText.TextSize = 9
+verText.Font = Enum.Font.GothamBold
+verText.ZIndex = 15
+verText.Parent = verBadge
+
+makeSeparator(centerPanel, 48)
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) 3D LOGO with pulsing aura utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+local brandCard = Instance.new("Frame")
+brandCard.Size = UDim2.new(0, 190, 0, 114)
+brandCard.Position = UDim2.new(0.5, -95, 0, 56)
+brandCard.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
+brandCard.BackgroundTransparency = 0.4
+brandCard.BorderSizePixel = 0
+brandCard.ZIndex = 12
+brandCard.Parent = centerPanel
+corner(brandCard, 16)
+stroke(brandCard, T.Border, 1.5, 0.45)
+
+local brandGrad = Instance.new("UIGradient")
+brandGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 32, 64)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 16, 32))
+})
+brandGrad.Rotation = 45
+brandGrad.Parent = brandCard
+
+local logoContainer = Instance.new("Frame")
+logoContainer.Size = UDim2.new(0, 68, 0, 68)
+logoContainer.Position = UDim2.new(0, 12, 0.5, -34)
+logoContainer.BackgroundColor3 = T.BgElevated
+logoContainer.BackgroundTransparency = 0.15
+logoContainer.BorderSizePixel = 0
+logoContainer.ZIndex = 13
+logoContainer.Parent = brandCard
+corner(logoContainer, 14)
+local logoStroke = stroke(logoContainer, T.Accent1, 1.5, 0.4)
+
+local logoImage = Instance.new("ImageLabel")
+logoImage.Size = UDim2.new(1, 0, 1, 0)
+logoImage.Position = UDim2.new(0, 0, 0, 0)
+logoImage.BackgroundTransparency = 1
+logoImage.Image = "rbxthumb://type=Asset&id=" .. (LOGO_ASSET_ID:match("%d+") or "0") .. "&w=150&h=150"
+logoImage.ScaleType = Enum.ScaleType.Stretch
+logoImage.ZIndex = 14
+logoImage.Parent = logoContainer
+corner(logoImage, 14)
+
+local logoFallback = Instance.new("TextLabel")
+logoFallback.Size = UDim2.new(1, 0, 1, 0)
+logoFallback.BackgroundTransparency = 1
+logoFallback.Text = "S"
+logoFallback.TextColor3 = T.White
+logoFallback.TextSize = 36
+logoFallback.Font = Enum.Font.GothamBlack
+logoFallback.ZIndex = 14
+logoFallback.Parent = logoContainer
+gradient(logoFallback, T.Accent1, Color3.fromRGB(200, 230, 255), 45)
+
+local checkId = LOGO_ASSET_ID:match("%d+") or "0"
+if checkId ~= "0" then
+    logoFallback.Visible = false
+else
+    logoImage.Visible = false
+end
+
+local eggClicks = 0
+local eggBtn = Instance.new("TextButton")
+eggBtn.Size = UDim2.new(1, 0, 1, 0)
+eggBtn.BackgroundTransparency = 1
+eggBtn.Text = ""
+eggBtn.ZIndex = 18
+eggBtn.Parent = logoContainer
+eggBtn.MouseButton1Click:Connect(function()
+    eggClicks = eggClicks + 1
+    if eggClicks >= 5 then
+        eggClicks = 0
+        tween(logoStroke, {Color = T.Warning, Thickness = 4}, 0.1)
+        task.wait(0.1)
+        tween(logoStroke, {Color = T.Accent1, Thickness = 1.5}, 0.3)
+        statusMsg.Text = "🥚 shh... you found the egg! 🐞"
+        tween(statusMsg, {TextColor3 = T.Warning}, 0.2)
+        for i = 1, 16 do
+            local burst = Instance.new("Frame")
+            burst.Size = UDim2.new(0, 6, 0, 6)
+            burst.Position = UDim2.new(0.5, 0, 0.3, 0)
+            burst.BackgroundColor3 = ({T.Warning, T.Neon, T.Accent1, T.Accent3})[math.random(1,4)]
+            burst.BorderSizePixel = 0
+            burst.ZIndex = 22
+            burst.AnchorPoint = Vector2.new(0.5, 0.5)
+            burst.Parent = centerPanel
+            corner(burst, 3)
+            local ang = (i / 16) * math.pi * 2
+            local d = math.random(60, 140)
+            tween(burst, {
+                Position = UDim2.new(0.5, math.cos(ang)*d, 0.3, math.sin(ang)*d),
+                BackgroundTransparency = 1, Size = UDim2.new(0,2,0,2)
+            }, 0.8, Enum.EasingStyle.Quad)
+            task.delay(0.85, function() burst:Destroy() end)
+        end
+        task.wait(3)
+        statusMsg.Text = "🔑 Enter your key to access the script"
+        tween(statusMsg, {TextColor3 = T.Grey}, 0.3)
+    end
+end)
+
+local infoFrame = Instance.new("Frame")
+infoFrame.Size = UDim2.new(1, -94, 1, -24)
+infoFrame.Position = UDim2.new(0, 86, 0, 12)
+infoFrame.BackgroundTransparency = 1
+infoFrame.ZIndex = 13
+infoFrame.Parent = brandCard
+
+local infoLayout = Instance.new("UIListLayout")
+infoLayout.FillDirection = Enum.FillDirection.Vertical
+infoLayout.Padding = UDim.new(0, 3)
+infoLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+infoLayout.Parent = infoFrame
+
+local brandTitle = Instance.new("TextLabel")
+brandTitle.Size = UDim2.new(1, 0, 0, 16)
+brandTitle.BackgroundTransparency = 1
+brandTitle.Text = "Snowy Studios"
+brandTitle.TextColor3 = T.White
+brandTitle.TextSize = 13
+brandTitle.Font = Enum.Font.GothamBold
+brandTitle.TextXAlignment = Enum.TextXAlignment.Left
+brandTitle.ZIndex = 14
+brandTitle.Parent = infoFrame
+
+local brandSub = Instance.new("TextLabel")
+brandSub.Size = UDim2.new(1, 0, 0, 14)
+brandSub.BackgroundTransparency = 1
+brandSub.Text = "Verified Client"
+brandSub.TextColor3 = T.Grey
+brandSub.TextSize = 9
+brandSub.Font = Enum.Font.GothamMedium
+brandSub.TextXAlignment = Enum.TextXAlignment.Left
+brandSub.ZIndex = 14
+brandSub.Parent = infoFrame
+
+local badgeContainer = Instance.new("Frame")
+badgeContainer.Size = UDim2.new(1, 0, 0, 16)
+badgeContainer.BackgroundTransparency = 1
+badgeContainer.ZIndex = 14
+badgeContainer.Parent = infoFrame
+
+local badgeIcon = Instance.new("ImageLabel")
+badgeIcon.Size = UDim2.new(0, 12, 0, 12)
+badgeIcon.Position = UDim2.new(0, 0, 0.5, -6)
+badgeIcon.BackgroundTransparency = 1
+badgeIcon.Image = "rbxassetid://71867984579031"
+badgeIcon.ImageColor3 = T.Success
+badgeIcon.ZIndex = 15
+badgeIcon.Parent = badgeContainer
+
+local badgeLabel = Instance.new("TextLabel")
+badgeLabel.Size = UDim2.new(1, -16, 1, 0)
+badgeLabel.Position = UDim2.new(0, 15, 0, 0)
+badgeLabel.BackgroundTransparency = 1
+badgeLabel.Text = "Active Service"
+badgeLabel.TextColor3 = T.Success
+badgeLabel.TextSize = 9
+badgeLabel.Font = Enum.Font.GothamBold
+badgeLabel.TextXAlignment = Enum.TextXAlignment.Left
+badgeLabel.ZIndex = 15
+badgeLabel.Parent = badgeContainer
+-- (Stats bar removed)
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) Security Badge utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+local secBadge = Instance.new("Frame")
+secBadge.Size = UDim2.new(0, 140, 0, 18)
+secBadge.Position = UDim2.new(0.5, -70, 0, 188)
+secBadge.BackgroundColor3 = T.Success
+secBadge.BackgroundTransparency = 0.88
+secBadge.BorderSizePixel = 0
+secBadge.ZIndex = 14
+secBadge.Parent = centerPanel
+corner(secBadge, 5)
+local secIcon = Instance.new("ImageLabel")
+secIcon.Size = UDim2.new(0, 10, 0, 10)
+secIcon.Position = UDim2.new(0, 8, 0.5, -5)
+secIcon.BackgroundTransparency = 1
+secIcon.Image = "rbxassetid://71867984579031" -- shield-check
+secIcon.ImageColor3 = T.Success
+secIcon.ZIndex = 15
+secIcon.Parent = secBadge
+
+local secText = Instance.new("TextLabel")
+secText.Size = UDim2.new(1, -26, 1, 0)
+secText.Position = UDim2.new(0, 22, 0, 0)
+secText.BackgroundTransparency = 1
+secText.Text = "Secured by Snowy Hub"
+secText.TextColor3 = T.Success
+secText.TextSize = 9
+secText.Font = Enum.Font.GothamBold
+secText.TextXAlignment = Enum.TextXAlignment.Left
+secText.ZIndex = 15
+secText.Parent = secBadge
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) Status Message with Idle Cycling Tips utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+local statusMsg = Instance.new("TextLabel")
+statusMsg.Size = UDim2.new(1, -40, 0, 22)
+statusMsg.Position = UDim2.new(0, 20, 0, 212)
+statusMsg.BackgroundTransparency = 1
+statusMsg.Text = "🔑 Enter your key to access the script"
+statusMsg.TextColor3 = T.Grey
+statusMsg.TextSize = 13
+statusMsg.Font = Enum.Font.GothamMedium
+statusMsg.TextXAlignment = Enum.TextXAlignment.Center
+statusMsg.ZIndex = 14
+statusMsg.Parent = centerPanel
+
+local statusIconImg = Instance.new("ImageLabel")
+statusIconImg.Size = UDim2.new(0, 12, 0, 12)
+statusIconImg.BackgroundTransparency = 1
+statusIconImg.ZIndex = 15
+statusIconImg.Parent = statusMsg
+
+local updatingStatus = false
+local function updateStatusLayout()
+    if updatingStatus then return end
+    updatingStatus = true
+    
+    local text = statusMsg.Text
+    local emojiMap = {
+        ["🔑"] = "rbxassetid://116918931002434",
+        ["💬"] = "rbxassetid://86432989388834",
+        ["⚡"] = "rbxassetid://109718589733073",
+        ["🗡"] = "rbxassetid://71867984579031",
+        ["🛡"] = "rbxassetid://71867984579031",
+        ["⭐"] = "rbxassetid://92253403464658",
+        ["✨"] = "rbxassetid://92253403464658",
+        ["🔗"] = "rbxassetid://116378866141355",
+        ["⏳"] = "rbxassetid://136533241128438",
+        ["⚠"] = "rbxassetid://112102474509324",
+        ["❌"] = "rbxassetid://116396312853810",
+        ["📋"] = "rbxassetid://105021692319787",
+        ["⚙"] = "rbxassetid://106205298246017",
+        ["🥚"] = "rbxassetid://87706885156127",
+        ["✅"] = "rbxassetid://105979545056636"
+    }
+    
+    local foundAsset = nil
+    local cleanText = text
+    for em, asset in pairs(emojiMap) do
+        if text:sub(1, #em) == em then
+            foundAsset = asset
+            cleanText = text:sub(#em + 1):gsub("^%s+", "")
+            break
+        end
+    end
+    
+    if foundAsset then
+        statusIconImg.Image = foundAsset
+        statusIconImg.Visible = true
+        statusIconImg.ImageColor3 = statusMsg.TextColor3
+        
+        local width = statusMsg.AbsoluteSize.X > 0 and statusMsg.AbsoluteSize.X or 300
+        local leftOffset = (width / 2) - (statusMsg.TextBounds.X / 2) - 16
+        statusIconImg.Position = UDim2.new(0, leftOffset, 0.5, -6)
+        
+        statusMsg.Text = cleanText
+    else
+        statusIconImg.Visible = false
+    end
+    
+    updatingStatus = false
+end
+
+statusMsg:GetPropertyChangedSignal("Text"):Connect(updateStatusLayout)
+statusMsg:GetPropertyChangedSignal("TextBounds"):Connect(updateStatusLayout)
+statusMsg:GetPropertyChangedSignal("TextColor3"):Connect(function()
+    statusIconImg.ImageColor3 = statusMsg.TextColor3
+end)
+task.spawn(updateStatusLayout)
+-- Idle cycling tips (stops once user interacts)
+local idleTips = {
+    "🔑 Enter your key to access the script",
+    "💬 Join our Discord for free keys!",
+    "⚡ 360+ features across 13 games",
+    "🗡 Secured & undetected by anti-cheat",
+    "⭐ Premium unlocks exclusive scripts",
+    "🔗 Use Get Key to get your access link",
+}
+local tipActive = true
+task.spawn(function()
+    local i = 1
+    while Screen and Screen.Parent do
+        task.wait(4)
+        if tipActive then
+            i = (i % #idleTips) + 1
+            tween(statusMsg, {TextTransparency = 1}, 0.3)
+            task.wait(0.35)
+            statusMsg.Text = idleTips[i]
+            statusMsg.TextColor3 = T.Grey
+            tween(statusMsg, {TextTransparency = 0}, 0.3)
+        end
+    end
+end)
+-- Stop tips on interaction
+local function stopTips()
+    tipActive = false
+end
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) Key Input utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+local inputBg = Instance.new("Frame")
+inputBg.Size = UDim2.new(1, -40, 0, 48)
+inputBg.Position = UDim2.new(0, 20, 0, 244)
+inputBg.BackgroundColor3 = T.BgInput
+inputBg.BackgroundTransparency = 0.05
+inputBg.BorderSizePixel = 0
+inputBg.ZIndex = 14
+inputBg.Parent = centerPanel
+corner(inputBg, 12)
+local inputStroke = stroke(inputBg, T.Border, 1.5, 0.5)
+-- Input icon
+local inputIcon = Instance.new("ImageLabel")
+inputIcon.Size = UDim2.new(0, 14, 0, 14)
+inputIcon.Position = UDim2.new(0, 10, 0.5, -7)
+inputIcon.BackgroundTransparency = 1
+inputIcon.Image = "rbxassetid://116918931002434" -- key-round
+inputIcon.ImageColor3 = T.Dim
+inputIcon.ZIndex = 16
+inputIcon.Parent = inputBg
+local keyInput = Instance.new("TextBox")
+keyInput.Size = UDim2.new(1, -70, 1, 0)
+keyInput.Position = UDim2.new(0, 32, 0, 0)
+keyInput.BackgroundTransparency = 1
+keyInput.PlaceholderText = "Enter your key..."
+keyInput.PlaceholderColor3 = T.Dim
+keyInput.TextColor3 = T.White
+keyInput.TextSize = 14
+keyInput.Font = Enum.Font.GothamMedium
+keyInput.ClearTextOnFocus = false
+keyInput.Text = ""
+keyInput.ZIndex = 15
+keyInput.Parent = inputBg
+-- Paste button
+local pasteBtn = Instance.new("TextButton")
+pasteBtn.Size = UDim2.new(0, 28, 0, 28)
+pasteBtn.Position = UDim2.new(1, -34, 0.5, -14)
+pasteBtn.BackgroundColor3 = T.BgElevated
+pasteBtn.BackgroundTransparency = 0.6
+pasteBtn.Text = ""
+pasteBtn.ZIndex = 16
+pasteBtn.Parent = inputBg
+corner(pasteBtn, 6)
+stroke(pasteBtn, T.Accent1, 1, 0.6)
+
+local pasteIcon = Instance.new("ImageLabel")
+pasteIcon.Size = UDim2.new(0, 12, 0, 12)
+pasteIcon.Position = UDim2.new(0.5, -6, 0.5, -6)
+pasteIcon.BackgroundTransparency = 1
+pasteIcon.Image = "rbxassetid://105021692319787" -- clipboard
+pasteIcon.ImageColor3 = T.Accent1
+pasteIcon.ZIndex = 17
+pasteIcon.Parent = pasteBtn
+pasteBtn.MouseEnter:Connect(function()
+    tween(pasteBtn, {BackgroundTransparency = 0.3}, 0.15)
+    tween(pasteBtn.UIStroke, {Transparency = 0}, 0.15)
+end)
+pasteBtn.MouseLeave:Connect(function()
+    tween(pasteBtn, {BackgroundTransparency = 0.6}, 0.15)
+    tween(pasteBtn.UIStroke, {Transparency = 0.6}, 0.15)
+end)
+pasteBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        local clipboard = game:GetService("ClipboardService") or syn and syn.clipboard.get()
+        if clipboard then
+            keyInput.Text = clipboard
+            stopTips()
+            tween(inputStroke, {Color = T.Success, Transparency = 0, Thickness = 2}, 0.2)
+            tween(pasteBtn, {BackgroundColor3 = T.Success}, 0.1)
+            task.wait(0.2)
+            tween(pasteBtn, {BackgroundColor3 = T.BgElevated}, 0.2)
+        end
+    end)
+end)
+local inputFocused = false
+keyInput.Focused:Connect(function()
+    inputFocused = true
+    stopTips()
+    tween(inputStroke, {Color = T.Accent1, Transparency = 0.1, Thickness = 2}, 0.2)
+    tween(inputBg, {BackgroundColor3 = T.BgGlass}, 0.2)
+end)
+keyInput.FocusLost:Connect(function()
+    inputFocused = false
+    tween(inputStroke, {Color = T.Border, Transparency = 0.5, Thickness = 1.5}, 0.2)
+    tween(inputBg, {BackgroundColor3 = T.BgInput}, 0.2)
+end)
+-- Paste detection flash (Ctrl+V / right-click paste)
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.V and UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+        if keyInput:IsFocused() then
+            stopTips()
+            tween(inputStroke, {Color = T.Success, Transparency = 0}, 0.1)
+            tween(inputBg, {BackgroundColor3 = Color3.fromRGB(10, 35, 20)}, 0.1)
+            task.wait(0.4)
+            tween(inputStroke, {Color = T.Accent1, Transparency = 0.1}, 0.2)
+            tween(inputBg, {BackgroundColor3 = T.BgGlass}, 0.2)
+        end
+    end
+end)
+-- ══════════════════════════════════════════════════════════
+-- KEY TYPE DETECTION (visual badge only)
+-- ══════════════════════════════════════════════════════════
+local FREE_KEY_PREFIX = "SNOWY-FREE-"
+local PREM_KEY_PREFIX = "SNOWY-PREM-"
+local function detectKeyType(text)
+    if #text == 0 then return "none" end
+    if text:upper():sub(1, #PREM_KEY_PREFIX) == PREM_KEY_PREFIX:upper() then
+        return "premium"
+    end
+    return "free"
+end
+-- utf8.char(0x2500) .. utf8.char(0x2500) LIVE KEY TYPE BADGE (sits below input) utf8.char(0x2500) .. utf8.char(0x2500)
+local keyTypeBadge = Instance.new("Frame")
+keyTypeBadge.Size = UDim2.new(0, 90, 0, 18)
+keyTypeBadge.Position = UDim2.new(0, 20, 0, 301)
+keyTypeBadge.BackgroundColor3 = T.Dim
+keyTypeBadge.BackgroundTransparency = 0.4
+keyTypeBadge.BorderSizePixel = 0
+keyTypeBadge.ZIndex = 15
+keyTypeBadge.Visible = false
+keyTypeBadge.Parent = centerPanel
+corner(keyTypeBadge, 5)
+
+local keyTypeBadgeIcon = Instance.new("ImageLabel")
+keyTypeBadgeIcon.Size = UDim2.new(0, 10, 0, 10)
+keyTypeBadgeIcon.Position = UDim2.new(0, 6, 0.5, -5)
+keyTypeBadgeIcon.BackgroundTransparency = 1
+keyTypeBadgeIcon.ZIndex = 16
+keyTypeBadgeIcon.Parent = keyTypeBadge
+
+local keyTypeBadgeText = Instance.new("TextLabel")
+keyTypeBadgeText.Size = UDim2.new(1, -22, 1, 0)
+keyTypeBadgeText.Position = UDim2.new(0, 18, 0, 0)
+keyTypeBadgeText.BackgroundTransparency = 1
+keyTypeBadgeText.Text = ""
+keyTypeBadgeText.TextColor3 = T.White
+keyTypeBadgeText.TextSize = 9
+keyTypeBadgeText.Font = Enum.Font.GothamBlack
+keyTypeBadgeText.TextXAlignment = Enum.TextXAlignment.Left
+keyTypeBadgeText.ZIndex = 16
+keyTypeBadgeText.Parent = keyTypeBadge
+-- Subtle separator line visible between badge and buttons
+local strengthTrack = Instance.new("Frame")
+strengthTrack.Size = UDim2.new(1, -40, 0, 2)
+strengthTrack.Position = UDim2.new(0, 20, 0, 301)
+strengthTrack.BackgroundColor3 = T.BgElevated
+strengthTrack.BackgroundTransparency = 0.3
+strengthTrack.BorderSizePixel = 0
+strengthTrack.ZIndex = 14
+strengthTrack.Parent = centerPanel
+corner(strengthTrack, 1)
+local strengthFill = Instance.new("Frame")
+strengthFill.Size = UDim2.new(0, 0, 1, 0)
+strengthFill.BackgroundColor3 = T.Error
+strengthFill.BackgroundTransparency = 0.2
+strengthFill.BorderSizePixel = 0
+strengthFill.ZIndex = 15
+strengthFill.Parent = strengthTrack
+corner(strengthFill, 1)
+-- Combined key type + strength update
+local lastKeyType = "none"
+keyInput:GetPropertyChangedSignal("Text"):Connect(function()
+    local txt = keyInput.Text
+    local len = #txt
+    local kType = detectKeyType(txt)
+    -- Strength fill
+    local pct = math.min(len / 36, 1)
+    local fillCol = pct < 0.3 and T.Error or (pct < 0.7 and T.Warning or T.Success)
+    tween(strengthFill, {Size = UDim2.new(pct, 0, 1, 0), BackgroundColor3 = fillCol}, 0.18)
+    -- Key type badge
+    if kType ~= lastKeyType then
+        lastKeyType = kType
+        if kType == "none" then
+            tween(keyTypeBadge, {BackgroundTransparency = 1}, 0.15)
+            keyTypeBadge.Visible = false
+        elseif kType == "free" then
+            keyTypeBadge.Visible = true
+            keyTypeBadge.BackgroundColor3 = T.Success
+            keyTypeBadgeIcon.Image = "rbxassetid://87706885156127" -- gift
+            keyTypeBadgeText.Text = "FREE KEY"
+            tween(keyTypeBadge, {BackgroundTransparency = 0.25}, 0.2)
+            tween(inputStroke, {Color = T.Success, Transparency = 0.1}, 0.2)
+            -- Pulse the badge
+            tween(keyTypeBadge, {Size = UDim2.new(0, 96, 0, 20)}, 0.15, Enum.EasingStyle.Back)
+            task.delay(0.2, function()
+                tween(keyTypeBadge, {Size = UDim2.new(0, 90, 0, 18)}, 0.15)
+            end)
+        elseif kType == "premium" then
+            keyTypeBadge.Visible = true
+            keyTypeBadge.BackgroundColor3 = Color3.fromRGB(150, 100, 255)
+            keyTypeBadgeIcon.Image = "rbxassetid://116918931002434" -- key-round
+            keyTypeBadgeText.Text = "PREMIUM KEY"
+            keyTypeBadge.Size = UDim2.new(0, 120, 0, 18)
+            tween(keyTypeBadge, {BackgroundTransparency = 0.25}, 0.2)
+            tween(inputStroke, {Color = Color3.fromRGB(150, 100, 255), Transparency = 0.1}, 0.2)
+            -- Pulse
+            tween(keyTypeBadge, {Size = UDim2.new(0, 126, 0, 20)}, 0.15, Enum.EasingStyle.Back)
+            task.delay(0.2, function()
+                tween(keyTypeBadge, {Size = UDim2.new(0, 120, 0, 18)}, 0.15)
+            end)
+        end
+    end
+end)
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) Button Builder with premium hover effects utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+local function createButton(text, pos, size, bgColor, parent, opts)
+    opts = opts or {}
+    local btn = Instance.new("TextButton")
+    btn.Size = size
+    btn.Position = pos
+    btn.BackgroundColor3 = bgColor
+    btn.BackgroundTransparency = opts.bgTransparency or 0.08
+    btn.AutoButtonColor = false
+    btn.Text = ""
+    btn.BorderSizePixel = 0
+    btn.ZIndex = 14
+    btn.ClipsDescendants = true
+    btn.Parent = parent or centerPanel
+    corner(btn, 12)
+    local btnStroke = stroke(btn, opts.strokeColor or bgColor, opts.strokeThick or 1.5, opts.strokeTrans or 0.35)
+    -- Optional inner gradient overlay for depth
+    if opts.gradient then
+        local innerGrad = Instance.new("Frame")
+        innerGrad.Size = UDim2.new(1, 0, 1, 0)
+        innerGrad.BackgroundColor3 = Color3.new(1, 1, 1)
+        innerGrad.BackgroundTransparency = 0.92
+        innerGrad.BorderSizePixel = 0
+        innerGrad.ZIndex = 14
+        innerGrad.Parent = btn
+        corner(innerGrad, 12)
+        gradient(innerGrad, opts.gradient[1], opts.gradient[2], opts.gradient[3] or 90)
+    end
+    -- Button text
+    local btnText = Instance.new("TextLabel")
+    btnText.Size = UDim2.new(1, -24, 1, 0)
+    btnText.Position = UDim2.new(0, 20, 0, 0)
+    btnText.BackgroundTransparency = 1
+    btnText.Text = text
+    btnText.TextColor3 = T.White
+    btnText.TextSize = opts.textSize or 13
+    btnText.Font = Enum.Font.GothamBold
+    btnText.ZIndex = 15
+    btnText.Parent = btn
+
+    local btnIcon = Instance.new("ImageLabel")
+    btnIcon.Size = UDim2.new(0, 12, 0, 12)
+    btnIcon.Position = UDim2.new(0, 8, 0.5, -6)
+    btnIcon.BackgroundTransparency = 1
+    btnIcon.ZIndex = 16
+    btnIcon.Parent = btn
+    
+    if opts.icon then
+        btnIcon.Image = opts.icon
+        btnIcon.ImageColor3 = T.White
+        btnIcon.Visible = true
+    else
+        btnIcon.Visible = false
+        btnText.Size = UDim2.new(1, 0, 1, 0)
+        btnText.Position = UDim2.new(0, 0, 0, 0)
+        btnText.TextXAlignment = Enum.TextXAlignment.Center
+    end
+    
+    -- Shimmer sweep + RIPPLE click animation
+    local shimmer = Instance.new("Frame")
+    shimmer.Size = UDim2.new(0.2, 0, 1, 0)
+    shimmer.Position = UDim2.new(-0.25, 0, 0, 0)
+    shimmer.BackgroundColor3 = T.White
+    shimmer.BackgroundTransparency = 0.82
+    shimmer.BorderSizePixel = 0
+    shimmer.ZIndex = 16
+    shimmer.Parent = btn
+    corner(shimmer, 12)
+    gradient(shimmer, Color3.new(1,1,1), Color3.fromRGB(200, 230, 255), 0)
+    -- Store original values for hover restore
+    local origSize = size
+    local origPos = pos
+    local hoverSize = UDim2.new(origSize.X.Scale, origSize.X.Offset + 8, origSize.Y.Scale, origSize.Y.Offset + 4)
+    local hoverPos = UDim2.new(origPos.X.Scale, origPos.X.Offset - 4, origPos.Y.Scale, origPos.Y.Offset - 2)
+    btn.MouseEnter:Connect(function()
+        tween(btn, {Size = hoverSize, Position = hoverPos, BackgroundTransparency = 0}, 0.2, Enum.EasingStyle.Back)
+        tween(btnStroke, {Transparency = 0, Thickness = 2}, 0.15)
+        tween(btnText, {TextSize = (opts.textSize or 13) + 1}, 0.15)
+        shimmer.Position = UDim2.new(-0.25, 0, 0, 0)
+        tween(shimmer, {Position = UDim2.new(1.1, 0, 0, 0)}, 0.4, Enum.EasingStyle.Quad)
+    end)
+    btn.MouseLeave:Connect(function()
+        tween(btn, {Size = origSize, Position = origPos, BackgroundTransparency = opts.bgTransparency or 0.08}, 0.25, Enum.EasingStyle.Quint)
+        tween(btnStroke, {Transparency = opts.strokeTrans or 0.35, Thickness = opts.strokeThick or 1.5}, 0.2)
+        tween(btnText, {TextSize = opts.textSize or 13}, 0.2)
+    end)
+    btn.MouseButton1Down:Connect(function()
+        local pressSize = UDim2.new(origSize.X.Scale, origSize.X.Offset - 4, origSize.Y.Scale, origSize.Y.Offset - 2)
+        local pressPos = UDim2.new(origPos.X.Scale, origPos.X.Offset + 2, origSize.Y.Scale, origPos.Y.Offset + 1)
+        tween(btn, {Size = pressSize, Position = pressPos}, 0.06)
+    end)
+    btn.MouseButton1Up:Connect(function()
+        tween(btn, {Size = origSize, Position = origPos}, 0.12, Enum.EasingStyle.Back)
+    end)
+    -- ✨ Ripple expand on click
+    btn.MouseButton1Click:Connect(function()
+        local ripple = Instance.new("Frame")
+        ripple.Size = UDim2.new(0, 0, 0, 0)
+        ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+        ripple.BackgroundColor3 = T.White
+        ripple.BackgroundTransparency = 0.6
+        ripple.BorderSizePixel = 0
+        ripple.ZIndex = 17
+        ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+        ripple.Parent = btn
+        corner(ripple, 50)
+        local sz = math.max(btn.AbsoluteSize.X, btn.AbsoluteSize.Y) * 2.5
+        tween(ripple, {
+            Size = UDim2.new(0, sz, 0, sz),
+            BackgroundTransparency = 1
+        }, 0.5, Enum.EasingStyle.Quad)
+        task.delay(0.55, function() ripple:Destroy() end)
+    end)
+    return btn, btnText, btnIcon
+end
+-- ═══════════════════════════════════════════════════════
+-- BUTTON ROW: [Get Your Key (left, 195px)] [Redeem Key (right, 113px)]
+-- ═══════════════════════════════════════════════════════
+-- Outer glow aura — only behind Get Key button (195px wide)
+local getKeyAura = Instance.new("Frame")
+getKeyAura.Size = UDim2.new(0, 165, 0, 56)
+getKeyAura.Position = UDim2.new(0, 6, 0, 303)
+getKeyAura.BackgroundColor3 = T.Neon
+getKeyAura.BackgroundTransparency = 0.75
+getKeyAura.BorderSizePixel = 0
+getKeyAura.ZIndex = 12
+getKeyAura.Parent = centerPanel
+corner(getKeyAura, 14)
+-- Get Key button — left, 195px
+local getKeyBtn = Instance.new("TextButton")
+getKeyBtn.Size = UDim2.new(0, 157, 0, 48)
+getKeyBtn.Position = UDim2.new(0, 10, 0, 306)
+getKeyBtn.BackgroundColor3 = Color3.fromRGB(14, 28, 60)
+getKeyBtn.BackgroundTransparency = 0
+getKeyBtn.AutoButtonColor = false
+getKeyBtn.Text = ""
+getKeyBtn.BorderSizePixel = 0
+getKeyBtn.ZIndex = 14
+getKeyBtn.ClipsDescendants = true
+getKeyBtn.Parent = centerPanel
+corner(getKeyBtn, 13)
+-- Teal → purple gradient
+local gkGradFrame = Instance.new("Frame")
+gkGradFrame.Size = UDim2.new(1, 0, 1, 0)
+gkGradFrame.BackgroundColor3 = Color3.fromRGB(0, 160, 220)
+gkGradFrame.BackgroundTransparency = 0
+gkGradFrame.BorderSizePixel = 0
+gkGradFrame.ZIndex = 14
+gkGradFrame.Parent = getKeyBtn
+corner(gkGradFrame, 13)
+gradient(gkGradFrame, Color3.fromRGB(0, 160, 220), Color3.fromRGB(120, 40, 200), 135)
+-- Glowing stroke
+local getKeyStrokeObj = Instance.new("UIStroke")
+getKeyStrokeObj.Color = T.Neon
+getKeyStrokeObj.Thickness = 2
+getKeyStrokeObj.Transparency = 0.1
+getKeyStrokeObj.Parent = getKeyBtn
+-- Shimmer
+local gkShimmer = Instance.new("Frame")
+gkShimmer.Size = UDim2.new(0.3, 0, 1, 0)
+gkShimmer.Position = UDim2.new(-0.35, 0, 0, 0)
+gkShimmer.BackgroundColor3 = Color3.new(1,1,1)
+gkShimmer.BackgroundTransparency = 0.75
+gkShimmer.BorderSizePixel = 0
+gkShimmer.ZIndex = 17
+gkShimmer.Parent = getKeyBtn
+corner(gkShimmer, 10)
+task.spawn(function()
+    while Screen and Screen.Parent do
+        gkShimmer.Position = UDim2.new(-0.35, 0, 0, 0)
+        tween(gkShimmer, {Position = UDim2.new(1.15, 0, 0, 0)}, 1.1, Enum.EasingStyle.Quad)
+        task.wait(2.8)
+    end
+end)
+-- Key icon
+local gkIcon = Instance.new("ImageLabel")
+gkIcon.Size = UDim2.new(0, 14, 0, 14)
+gkIcon.Position = UDim2.new(0, 12, 0.5, -7)
+gkIcon.BackgroundTransparency = 1
+gkIcon.Image = "rbxassetid://116918931002434" -- key-round
+gkIcon.ImageColor3 = T.White
+gkIcon.ZIndex = 16
+gkIcon.Parent = getKeyBtn
+-- Button label
+local getKeyText = Instance.new("TextLabel")
+getKeyText.Size = UDim2.new(1, -52, 1, 0)
+getKeyText.Position = UDim2.new(0, 34, 0, 0)
+getKeyText.BackgroundTransparency = 1
+getKeyText.Text = "Get Key"
+getKeyText.TextColor3 = T.White
+getKeyText.TextSize = 14
+getKeyText.Font = Enum.Font.GothamBlack
+getKeyText.TextXAlignment = Enum.TextXAlignment.Left
+getKeyText.ZIndex = 16
+getKeyText.Parent = getKeyBtn
+-- Bouncing arrow (stays inside 195px)
+local gkArrow = Instance.new("TextLabel")
+gkArrow.Size = UDim2.new(0, 20, 1, 0)
+gkArrow.Position = UDim2.new(1, -26, 0, 0)
+gkArrow.BackgroundTransparency = 1
+gkArrow.Text = "→"
+gkArrow.TextColor3 = T.White
+gkArrow.TextSize = 14
+gkArrow.Font = Enum.Font.GothamBlack
+gkArrow.ZIndex = 16
+gkArrow.Parent = getKeyBtn
+-- (Arrow bounce handled in master Heartbeat loop via gkArrowT)
+-- FREE badge — parented to centerPanel so ClipsDescendants doesn't cut it off
+local freeBadge = Instance.new("Frame")
+freeBadge.Size = UDim2.new(0, 34, 0, 15)
+freeBadge.Position = UDim2.new(0, 130, 0, 299)  -- top-right of Get Key button
+freeBadge.BackgroundColor3 = T.Success
+freeBadge.BackgroundTransparency = 0
+freeBadge.BorderSizePixel = 0
+freeBadge.ZIndex = 20
+freeBadge.Parent = centerPanel
+corner(freeBadge, 5)
+local freeText = Instance.new("TextLabel")
+freeText.Size = UDim2.new(1, 0, 1, 0)
+freeText.BackgroundTransparency = 1
+freeText.Text = "FREE"
+freeText.TextColor3 = T.White
+freeText.TextSize = 8
+freeText.Font = Enum.Font.GothamBlack
+freeText.ZIndex = 21
+freeText.Parent = freeBadge
+-- (Aura pulse handled in master Heartbeat loop via gkAuraT)
+-- Hover/click
+local gkOS = getKeyBtn.Size
+local gkOP = getKeyBtn.Position
+getKeyBtn.MouseEnter:Connect(function()
+    tween(getKeyBtn, {Size = UDim2.new(0, 161, 0, 52), Position = UDim2.new(0, 8, 0, 304)}, 0.18, Enum.EasingStyle.Back)
+    tween(getKeyStrokeObj, {Transparency = 0, Thickness = 3}, 0.15)
+    gkShimmer.Position = UDim2.new(-0.35, 0, 0, 0)
+    tween(gkShimmer, {Position = UDim2.new(1.15, 0, 0, 0)}, 0.5, Enum.EasingStyle.Quad)
+end)
+getKeyBtn.MouseLeave:Connect(function()
+    tween(getKeyBtn, {Size = gkOS, Position = gkOP}, 0.22, Enum.EasingStyle.Quint)
+    tween(getKeyStrokeObj, {Transparency = 0.1, Thickness = 2}, 0.18)
+end)
+getKeyBtn.MouseButton1Down:Connect(function()
+    tween(getKeyBtn, {Size = UDim2.new(0, 153, 0, 46), Position = UDim2.new(0, 12, 0, 308)}, 0.07)
+end)
+getKeyBtn.MouseButton1Up:Connect(function()
+    tween(getKeyBtn, {Size = gkOS, Position = gkOP}, 0.12, Enum.EasingStyle.Back)
+    local ripple = Instance.new("Frame")
+    ripple.Size = UDim2.new(0, 0, 0, 0)
+    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+    ripple.BackgroundColor3 = T.White
+    ripple.BackgroundTransparency = 0.5
+    ripple.BorderSizePixel = 0
+    ripple.ZIndex = 17
+    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+    ripple.Parent = getKeyBtn
+    corner(ripple, 50)
+    tween(ripple, {Size = UDim2.new(0, 260, 0, 260), BackgroundTransparency = 1}, 0.45, Enum.EasingStyle.Quad)
+    task.delay(0.5, function() ripple:Destroy() end)
+end)
+-- Redeem Key button — right side, 113px, dark navy style
+local redeemBtn, redeemText, redeemIcon = createButton("Redeem",
+    UDim2.new(0, 173, 0, 306),
+    UDim2.new(0, 157, 0, 48),
+    Color3.fromRGB(20, 35, 65),
+    nil,
+    {
+        bgTransparency = 0.05,
+        strokeColor = T.Accent1,
+        strokeThick = 1.5,
+        strokeTrans = 0.3,
+        icon = "rbxassetid://116918931002434", -- key-round
+        gradient = {Color3.fromRGB(30, 80, 170), Color3.fromRGB(20, 50, 120), 135}
+    }
+)
+-- (Enter hint removed)
+local actionRow = Instance.new("Frame")
+actionRow.Size = UDim2.new(1, -30, 0, 32)
+actionRow.Position = UDim2.new(0, 15, 0, 366)
+actionRow.BackgroundTransparency = 1
+actionRow.ZIndex = 14
+actionRow.Parent = centerPanel
+local actionLayout = Instance.new("UIListLayout")
+actionLayout.FillDirection = Enum.FillDirection.Horizontal
+actionLayout.Padding = UDim.new(0, 6)
+actionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+actionLayout.Parent = actionRow
+local actionDefs = {
+    {icon = "rbxassetid://86432989388834", label = "Discord", color = Color3.fromRGB(88, 101, 242), action = function()
+        pcall(function() setclipboard("https://discord.gg/getsnowy") end)
+        -- Try to auto-open in browser
+        pcall(function()
+            syn.request({
+                Url = "https://discord.gg/getsnowy",
+                Method = "GET"
+            })
+        end)
+        -- Show cool big message overlay
+        local overlay = Instance.new("Frame")
+        overlay.Size = UDim2.new(1, 0, 1, 0)
+        overlay.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+        overlay.BackgroundTransparency = 1
+        overlay.BorderSizePixel = 0
+        overlay.ZIndex = 100
+        overlay.Parent = centerPanel
+        corner(overlay, 18)
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 10, 0, 10)
+        icon.Position = UDim2.new(0.5, -5, 0.4, -5)
+        icon.BackgroundTransparency = 1
+        icon.Image = "rbxassetid://86432989388834" -- message-square
+        icon.ImageColor3 = T.White
+        icon.ZIndex = 101
+        icon.Parent = overlay
+        local msg = Instance.new("TextLabel")
+        msg.Size = UDim2.new(1, 0, 0, 40)
+        msg.Position = UDim2.new(0, 0, 0.4, 60)
+        msg.BackgroundTransparency = 1
+        msg.Text = "DISCORD LINK COPIED!"
+        msg.TextSize = 24
+        msg.Font = Enum.Font.GothamBlack
+        msg.TextColor3 = T.White
+        msg.ZIndex = 101
+        msg.Parent = overlay
+        local sub = Instance.new("TextLabel")
+        sub.Size = UDim2.new(1, 0, 0, 20)
+        sub.Position = UDim2.new(0, 0, 0.4, 105)
+        sub.BackgroundTransparency = 1
+        sub.Text = "Paste in browser to join"
+        sub.TextSize = 14
+        sub.Font = Enum.Font.GothamMedium
+        sub.TextColor3 = Color3.fromRGB(200, 200, 255)
+        sub.ZIndex = 101
+        sub.Parent = overlay
+        tween(overlay, {BackgroundTransparency = 0.15}, 0.3)
+        tween(icon, {Size = UDim2.new(0, 80, 0, 80), Position = UDim2.new(0.5, -40, 0.4, -40)}, 0.5, Enum.EasingStyle.Elastic)
+        tween(msg, {TextTransparency = 0}, 0.4)
+        tween(sub, {TextTransparency = 0}, 0.4)
+        task.wait(2.5)
+        tween(overlay, {BackgroundTransparency = 1}, 0.3)
+        tween(icon, {Size = UDim2.new(0, 10, 0, 10), Position = UDim2.new(0.5, -5, 0.4, -5)}, 0.2)
+        tween(msg, {TextTransparency = 1}, 0.2)
+        tween(sub, {TextTransparency = 1}, 0.2)
+        task.wait(0.35)
+        overlay:Destroy()
+        statusMsg.Text = "💬 Discord copied & opening!"
+        tween(statusMsg, {TextColor3 = Color3.fromRGB(88, 101, 242)}, 0.2)
+    end},
+    {icon = "rbxassetid://105021692319787", label = "Copy HWID", color = T.Accent1, action = function()
+        pcall(function()
+            local id = tostring(game:GetService("RbxAnalyticsService"):GetClientId())
+            setclipboard(id)
+        end)
+        statusMsg.Text = "📋 HWID copied to clipboard!"
+        tween(statusMsg, {TextColor3 = T.Accent1}, 0.2)
+    end},
+    {icon = "rbxassetid://106205298246017", label = "Settings", color = T.Grey, action = function()
+        statusMsg.Text = "⚙ Settings coming in v2.1"
+        tween(statusMsg, {TextColor3 = T.Grey}, 0.2)
+    end},
+}
+for _, def in ipairs(actionDefs) do
+    local abtn = Instance.new("TextButton")
+    abtn.Size = UDim2.new(0, 90, 0, 32)
+    abtn.BackgroundColor3 = def.color
+    abtn.BackgroundTransparency = 0.82
+    abtn.AutoButtonColor = false
+    abtn.Text = ""
+    abtn.BorderSizePixel = 0
+    abtn.ZIndex = 15
+    abtn.Parent = actionRow
+    corner(abtn, 8)
+    local abtnStroke = stroke(abtn, def.color, 1, 0.6)
+    
+    local abtnLabel = Instance.new("TextLabel")
+    abtnLabel.Size = UDim2.new(1, -22, 1, 0)
+    abtnLabel.Position = UDim2.new(0, 20, 0, 0)
+    abtnLabel.BackgroundTransparency = 1
+    abtnLabel.Text = def.label
+    abtnLabel.TextColor3 = T.White
+    abtnLabel.TextSize = 10
+    abtnLabel.Font = Enum.Font.GothamBold
+    abtnLabel.TextXAlignment = Enum.TextXAlignment.Left
+    abtnLabel.ZIndex = 16
+    abtnLabel.Parent = abtn
+
+    local abtnIcon = Instance.new("ImageLabel")
+    abtnIcon.Size = UDim2.new(0, 10, 0, 10)
+    abtnIcon.Position = UDim2.new(0, 6, 0.5, -5)
+    abtnIcon.BackgroundTransparency = 1
+    abtnIcon.Image = def.icon
+    abtnIcon.ImageColor3 = T.White
+    abtnIcon.ZIndex = 16
+    abtnIcon.Parent = abtn
+    local abtnOrigSize = abtn.Size
+    abtn.MouseEnter:Connect(function()
+        tween(abtn, {BackgroundTransparency = 0.5}, 0.2)
+        tween(abtnStroke, {Transparency = 0.15, Thickness = 1.5}, 0.15)
+        tween(abtnLabel, {TextSize = 11}, 0.15)
+    end)
+    abtn.MouseLeave:Connect(function()
+        tween(abtn, {BackgroundTransparency = 0.82}, 0.25)
+        tween(abtnStroke, {Transparency = 0.6, Thickness = 1}, 0.2)
+        tween(abtnLabel, {TextSize = 10}, 0.2)
+    end)
+    abtn.MouseButton1Down:Connect(function()
+        tween(abtn, {BackgroundTransparency = 0.3}, 0.06)
+    end)
+    abtn.MouseButton1Up:Connect(function()
+        tween(abtn, {BackgroundTransparency = 0.82}, 0.12)
+    end)
+    abtn.MouseButton1Click:Connect(def.action)
+end
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) Premium Banner (Enhanced) utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+local premBanner = Instance.new("Frame")
+premBanner.Size = UDim2.new(1, -30, 0, 54)
+premBanner.Position = UDim2.new(0, 15, 1, -66)
+premBanner.BackgroundColor3 = Color3.fromRGB(22, 12, 38)
+premBanner.BackgroundTransparency = 0.08
+premBanner.BorderSizePixel = 0
+premBanner.ZIndex = 14
+premBanner.ClipsDescendants = true
+premBanner.Parent = centerPanel
+corner(premBanner, 12)
+local premStroke = stroke(premBanner, T.Accent3, 1.5, 0.35)
+-- Premium banner inner shimmer
+local premShimmer = Instance.new("Frame")
+premShimmer.Size = UDim2.new(0.25, 0, 1, 0)
+premShimmer.Position = UDim2.new(-0.3, 0, 0, 0)
+premShimmer.BackgroundColor3 = T.Accent3
+premShimmer.BackgroundTransparency = 0.88
+premShimmer.BorderSizePixel = 0
+premShimmer.ZIndex = 14
+premShimmer.Parent = premBanner
+corner(premShimmer, 12)
+-- Repeating shimmer sweep on premium banner
+task.spawn(function()
+    while Screen and Screen.Parent do
+        premShimmer.Position = UDim2.new(-0.3, 0, 0, 0)
+        tween(premShimmer, {Position = UDim2.new(1.1, 0, 0, 0)}, 2.5, Enum.EasingStyle.Quad)
+        task.wait(4)
+    end
+end)
+-- Crown + text
+local premCrown = Instance.new("ImageLabel")
+premCrown.Size = UDim2.new(0, 14, 0, 14)
+premCrown.Position = UDim2.new(0, 10, 0.5, -7)
+premCrown.BackgroundTransparency = 1
+premCrown.Image = "rbxassetid://92253403464658" -- crown
+premCrown.ImageColor3 = Color3.fromRGB(255, 215, 0) -- Gold
+premCrown.ZIndex = 16
+premCrown.Parent = premBanner
+local premText = Instance.new("TextLabel")
+premText.Size = UDim2.new(0.6, 0, 1, 0)
+premText.Position = UDim2.new(0, 32, 0, 0)
+premText.BackgroundTransparency = 1
+premText.RichText = true
+premText.Text = "<b>Get Premium Access</b>\nInstant delivery • 24/7 support"
+premText.TextColor3 = T.White
+premText.TextSize = 10
+premText.Font = Enum.Font.Gotham
+premText.TextXAlignment = Enum.TextXAlignment.Left
+premText.TextYAlignment = Enum.TextYAlignment.Center
+premText.ZIndex = 15
+premText.Parent = premBanner
+local buyBtn, buyText, buyIcon = createButton("Buy",
+    UDim2.new(1, -68, 0.5, -15),
+    UDim2.new(0, 58, 0, 30),
+    T.Accent3,
+    premBanner,
+    {
+        bgTransparency = 0.08,
+        strokeColor = Color3.fromRGB(180, 130, 255),
+        strokeThick = 1,
+        strokeTrans = 0.4,
+        icon = "rbxassetid://79435149356304", -- shopping-cart
+        textSize = 9,
+        gradient = {T.Accent3, Color3.fromRGB(200, 140, 255), 90}
+    }
+)
+buyBtn.MouseButton1Click:Connect(function()
+    local STORE_URL = "https://getsnowy.xyz/pricing"
+    local copied = false
+    pcall(function() setclipboard(STORE_URL); copied = true end)
+    if not copied then pcall(function() toclipboard(STORE_URL); copied = true end) end
+    -- Show cool big message overlay
+    local overlay = Instance.new("Frame")
+    overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.BackgroundColor3 = T.Accent3
+    overlay.BackgroundTransparency = 1
+    overlay.BorderSizePixel = 0
+    overlay.ZIndex = 100
+    overlay.Parent = centerPanel
+    corner(overlay, 18)
+    local icon = Instance.new("TextLabel")
+    icon.Size = UDim2.new(0, 100, 0, 100)
+    icon.Position = UDim2.new(0.5, -50, 0.4, -50)
+    icon.BackgroundTransparency = 1
+    icon.Text = copied and "✅" or " "
+    icon.TextSize = 60
+    icon.TextColor3 = T.White
+    icon.ZIndex = 101
+    icon.Parent = overlay
+    local msg = Instance.new("TextLabel")
+    msg.Size = UDim2.new(1, 0, 0, 40)
+    msg.Position = UDim2.new(0, 0, 0.4, 60)
+    msg.BackgroundTransparency = 1
+    msg.Text = copied and "LINK COPIED!" or "COPY THIS LINK"
+    msg.TextSize = 24
+    msg.Font = Enum.Font.GothamBlack
+    msg.TextColor3 = T.White
+    msg.ZIndex = 101
+    msg.Parent = overlay
+    local sub = Instance.new("TextLabel")
+    sub.Size = UDim2.new(1, -40, 0, 20)
+    sub.Position = UDim2.new(0, 20, 0.4, 105)
+    sub.BackgroundTransparency = 1
+    sub.Text = STORE_URL
+    sub.TextSize = 15
+    sub.Font = Enum.Font.GothamBold
+    sub.TextColor3 = Color3.fromRGB(255, 245, 255)
+    sub.ZIndex = 101
+    sub.Parent = overlay
+    local hint = Instance.new("TextLabel")
+    hint.Size = UDim2.new(1, 0, 0, 18)
+    hint.Position = UDim2.new(0, 0, 0.4, 132)
+    hint.BackgroundTransparency = 1
+    hint.Text = copied and "Paste it in your browser to upgrade" or "Select & copy manually"
+    hint.TextSize = 12
+    hint.Font = Enum.Font.GothamMedium
+    hint.TextColor3 = Color3.fromRGB(210, 195, 255)
+    hint.ZIndex = 101
+    hint.Parent = overlay
+    tween(overlay, {BackgroundTransparency = 0.15}, 0.3)
+    tween(icon, {TextSize = 80}, 0.5, Enum.EasingStyle.Elastic)
+    tween(msg, {TextTransparency = 0}, 0.4)
+    tween(sub, {TextTransparency = 0}, 0.4)
+    tween(hint, {TextTransparency = 0}, 0.4)
+    task.wait(2.5)
+    tween(overlay, {BackgroundTransparency = 1}, 0.3)
+    tween(icon, {TextSize = 60}, 0.2)
+    tween(msg, {TextTransparency = 1}, 0.2)
+    tween(sub, {TextTransparency = 1}, 0.2)
+    tween(hint, {TextTransparency = 1}, 0.2)
+    task.wait(0.35)
+    overlay:Destroy()
+    statusMsg.Text = copied and "✅ Link copied! Paste in browser." or "📋 " .. STORE_URL
+    tween(statusMsg, {TextColor3 = T.Accent3}, 0.2)
+end)
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) Scrolling Feature Marquee (above premium banner) utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+local marqueeHolder = Instance.new("Frame")
+marqueeHolder.Size = UDim2.new(1, -30, 0, 18)
+marqueeHolder.Position = UDim2.new(0, 15, 1, -90)
+marqueeHolder.BackgroundColor3 = T.BgElevated
+marqueeHolder.BackgroundTransparency = 0.6
+marqueeHolder.BorderSizePixel = 0
+marqueeHolder.ZIndex = 14
+marqueeHolder.ClipsDescendants = true
+marqueeHolder.Parent = centerPanel
+corner(marqueeHolder, 5)
+local marqueeText = Instance.new("TextLabel")
+marqueeText.Size = UDim2.new(0, 900, 1, 0)
+marqueeText.Position = UDim2.new(0, 0, 0, 0)
+marqueeText.BackgroundTransparency = 1
+marqueeText.Text = "✦ Anti-Cheat Bypass   ❖   ≫ Speed Hack   ❖   ♔ God Mode   ❖   👁 ESP   ❖   ⚙ Auto Farm   ❖   ∞ Infinite Ammo   ❖   ⌖ Aimbot   ❖   ⧉ Custom HUD   ❖   ⌕ Radar   ❖   ◌ No Clip   ❖   "
+marqueeText.TextColor3 = T.Dim
+marqueeText.TextSize = 9
+marqueeText.Font = Enum.Font.GothamMedium
+marqueeText.TextXAlignment = Enum.TextXAlignment.Left
+marqueeText.ZIndex = 15
+marqueeText.Parent = marqueeHolder
+task.spawn(function()
+    while Screen and Screen.Parent do
+        marqueeText.Position = UDim2.new(0, 0, 0, 0)
+        tween(marqueeText, {Position = UDim2.new(0, -900, 0, 0)}, 18, Enum.EasingStyle.Linear)
+        task.wait(18)
+    end
+end)
+-- ═══════════════════════════════════════════════════════════
+-- MASTER RENDER LOOP (Enhanced Animations & Parallax)
+-- ═══════════════════════════════════════════════════════════
+local masterConn
+-- Consolidated animation state (single render loop - much cheaper than many task.spawn loops)
+local tPulse, snowRot, hue = 0, 0, 0
+local inputGlowT, getKeyGlowT, ringRot = 0, 0, 0
+local gkArrowT, gkAuraT = 0, 0  -- Get Key button animations
+local frameCount = 0
+-- Pre-cache UIStroke reference for getKeyBtn to avoid per-frame GetChildren
+local getKeyStroke = nil
+task.defer(function()
+    if getKeyBtn then
+        for _, c in pairs(getKeyBtn:GetChildren()) do
+            if c:IsA("UIStroke") then getKeyStroke = c break end
+        end
+    end
+end)
+-- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) STATIC UI MODE: no per-frame animations utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)
+-- The original code ran a 60Hz Heartbeat loop touching ~13 UI properties
+-- (snowflake spin, logo float, sparkle orbit, glow pulses, mouse parallax).
+-- That loop crashes or stutters on certain executors (Hydrogen, older
+-- builds), AND it eats CPU during the heavy hub compile. We replace it
+-- with a single-shot apply of "rest state" values: the snowflake sits at
+-- a nice tilt, sparkles form a fixed constellation, glows are at mid
+-- pulse, etc. masterConn stays nil so the later Disconnect() is a no-op.
+masterConn = nil
+pcall(function()
+    -- 1) Center border: solid cool-blue accent (no rainbow cycle)
+    centerStroke.Color = Color3.fromRGB(95, 165, 255)
+    -- 2) Snowflake: fixed slight tilt looks more intentional than 0°
+    snowEmoji.Rotation = -18
+    -- 3) Brand Card: parked at rest position
+    brandCard.Position = UDim2.new(0.5, -95, 0, 56)
+    -- 5) Input stroke at mid-glow
+    if not inputFocused then inputStroke.Transparency = 0.4 end
+    -- 6) Get Key stroke at mid-glow
+    if getKeyStroke then getKeyStroke.Transparency = 0.2 end
+    -- 7) Security badge at mid transparency
+    secBadge.BackgroundTransparency = 0.84
+    -- 8) Premium banner: solid premium gold tint
+    premStroke.Color = Color3.fromRGB(220, 170, 30)
+    -- 9) Avatar ring: fixed 45° rotation looks dynamic without motion
+    ringGrad.Rotation = 45
+    -- 10/11) Dots at solid visible state
+    onlineDot.BackgroundTransparency  = 0.15
+    statusDot.BackgroundTransparency  = 0.15
+    -- 12) Get Key arrow parked at rest
+    gkArrow.Position         = UDim2.new(1, -24, 0, 0)
+    gkArrow.TextTransparency = 0.1
+    -- 13) Get Key aura + stroke at mid-glow
+    getKeyAura.BackgroundTransparency = 0.7
+    getKeyStrokeObj.Thickness         = 2.5
+    -- Parallax disabled: panels stay perfectly centered
+    leftPanel.Position   = UDim2.new(0, 0, 0, 0)
+    centerPanel.Position = UDim2.new(0, 205, 0, 0)
+    mouseAura.Visible    = false
+end)
+-- ═══════════════════════════════════════════════════════════
+-- STATIC ENTRANCE (no animation - instant final layout)
+-- ═══════════════════════════════════════════════════════════
+-- Tweens are stubbed to instant property sets, so we just snap the UI
+-- to its final layout. Saves ~0.45s of pointless task.wait stalls.
+mainFrame.Position             = UDim2.new(0.5, -267.5, 0.5, -250)
+bgOverlay.BackgroundTransparency = 0.5
+if blurEffect then blurEffect.Size = 25 end
+-- ═══════════════════════════════════════════════════════════
+-- BUTTON LOGIC
+-- ═══════════════════════════════════════════════════════════
+-- Get Key → Copy Discord invite link
+getKeyBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        setclipboard("https://discord.gg/getsnowy")
+    end)
+    -- Show cool big message overlay
+    local overlay = Instance.new("Frame")
+    overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    overlay.BackgroundTransparency = 1
+    overlay.BorderSizePixel = 0
+    overlay.ZIndex = 100
+    overlay.Parent = centerPanel
+    corner(overlay, 18)
+    local icon = Instance.new("ImageLabel")
+    icon.Size = UDim2.new(0, 10, 0, 10)
+    icon.Position = UDim2.new(0.5, -5, 0.4, -5)
+    icon.BackgroundTransparency = 1
+    icon.Image = "rbxassetid://86432989388834" -- message-square
+    icon.ImageColor3 = T.White
+    icon.ZIndex = 101
+    icon.Parent = overlay
+    local msg = Instance.new("TextLabel")
+    msg.Size = UDim2.new(1, 0, 0, 40)
+    msg.Position = UDim2.new(0, 0, 0.4, 60)
+    msg.BackgroundTransparency = 1
+    msg.Text = "DISCORD LINK COPIED!"
+    msg.TextSize = 24
+    msg.Font = Enum.Font.GothamBlack
+    msg.TextColor3 = T.White
+    msg.ZIndex = 101
+    msg.Parent = overlay
+    local sub = Instance.new("TextLabel")
+    sub.Size = UDim2.new(1, 0, 0, 20)
+    sub.Position = UDim2.new(0, 0, 0.4, 105)
+    sub.BackgroundTransparency = 1
+    sub.Text = "Paste in browser to join"
+    sub.TextSize = 14
+    sub.Font = Enum.Font.GothamMedium
+    sub.TextColor3 = Color3.fromRGB(200, 200, 255)
+    sub.ZIndex = 101
+    sub.Parent = overlay
+    tween(overlay, {BackgroundTransparency = 0.15}, 0.3)
+    tween(icon, {Size = UDim2.new(0, 80, 0, 80), Position = UDim2.new(0.5, -40, 0.4, -40)}, 0.5, Enum.EasingStyle.Elastic)
+    tween(msg, {TextTransparency = 0}, 0.4)
+    tween(sub, {TextTransparency = 0}, 0.4)
+    task.wait(2.5)
+    tween(overlay, {BackgroundTransparency = 1}, 0.3)
+    tween(icon, {Size = UDim2.new(0, 10, 0, 10), Position = UDim2.new(0.5, -5, 0.4, -5)}, 0.2)
+    tween(msg, {TextTransparency = 1}, 0.2)
+    tween(sub, {TextTransparency = 1}, 0.2)
+    task.wait(0.35)
+    overlay:Destroy()
+    statusMsg.Text = "💬 Discord invite copied!"
+    tween(statusMsg, {TextColor3 = Color3.fromRGB(88, 101, 242)}, 0.2)
+end)
+-- Minimize feature
+local cloudBtn = Instance.new("TextButton")
+cloudBtn.Size = UDim2.new(0, 50, 0, 50)
+cloudBtn.Position = UDim2.new(0.5, -25, 0, -60) -- Start hidden above screen
+cloudBtn.BackgroundColor3 = T.BgElevated
+cloudBtn.BackgroundTransparency = 0.4
+cloudBtn.Text = ""
+cloudBtn.ZIndex = 100
+cloudBtn.AutoButtonColor = false
+cloudBtn.Visible = false
+cloudBtn.Parent = Screen
+corner(cloudBtn, 25)
+stroke(cloudBtn, T.Accent1, 2, 0.4)
+
+local cloudIcon = Instance.new("ImageLabel")
+cloudIcon.Size = UDim2.new(0, 24, 0, 24)
+cloudIcon.Position = UDim2.new(0.5, -12, 0.5, -12)
+cloudIcon.BackgroundTransparency = 1
+cloudIcon.Image = "rbxassetid://70879271596915" -- snowflake
+cloudIcon.ImageColor3 = T.White
+cloudIcon.ZIndex = 101
+cloudIcon.Parent = cloudBtn
+
+cloudBtn.MouseEnter:Connect(function()
+    tween(cloudBtn, {BackgroundTransparency = 0.2}, 0.2)
+    tween(cloudBtn.UIStroke, {Transparency = 0}, 0.2)
+    tween(cloudIcon, {Rotation = 90}, 0.3)
+end)
+cloudBtn.MouseLeave:Connect(function()
+    tween(cloudBtn, {BackgroundTransparency = 0.4}, 0.2)
+    tween(cloudBtn.UIStroke, {Transparency = 0.4}, 0.2)
+    tween(cloudIcon, {Rotation = 0}, 0.3)
+end)
+local function minimizeUI()
+    if not blurEffect then return end -- If already closed
+    -- Animate out main UI
+    tween(mainFrame, {Position = UDim2.new(0.5, -267.5, 0.65, -250)}, 0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    tween(bgOverlay, {BackgroundTransparency = 1}, 0.4)
+    tween(blurEffect, {Size = 0}, 0.4)
+    -- Show cloud
+    cloudBtn.Visible = true
+    tween(cloudBtn, {Position = UDim2.new(0.5, -25, 0, 20)}, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+end
+cloudBtn.MouseButton1Click:Connect(function()
+    -- Hide cloud
+    tween(cloudBtn, {Position = UDim2.new(0.5, -25, 0, -60)}, 0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    task.delay(0.4, function() cloudBtn.Visible = false end)
+    -- Restore main UI
+    tween(bgOverlay, {BackgroundTransparency = 0.5}, 0.5)
+    if blurEffect then
+        tween(blurEffect, {Size = 25}, 0.5)
+    end
+    tween(mainFrame, {Position = UDim2.new(0.5, -267.5, 0.5, -250)}, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+end)
+leftMin.MouseButton1Click:Connect(minimizeUI)
+-- Close buttons
+local function closeUI()
+    if getgenv().UI_CLOSING then return end
+    getgenv().UI_CLOSING = true
+    -- Immediately remove blur so game doesn't stay blurry
+    pcall(function() blurEffect.Size = 0 end)
+    pcall(function() blurEffect:Destroy() end)
+    blurEffect = nil
+    -- Animate out
+    tween(mainFrame, {Position = UDim2.new(0.5, -267.5, 0.6, -250)}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    tween(bgOverlay, {BackgroundTransparency = 1}, 0.3)
+    task.wait(0.35)
+    if Screen then Screen:Destroy() end
+    getgenv().UI_CLOSED = true
+end
+leftClose.MouseButton1Click:Connect(closeUI)
+-- Redeem Key → Junkie.check_key()
+local isValidating = false
+redeemBtn.MouseButton1Click:Connect(function()
+    if isValidating then return end
+    local key = keyInput.Text:gsub("%s+", "")
+    local normalizedKey = key:upper()
+    if key == "" then
+        statusMsg.Text = "⚠ Please enter a key first"
+        tween(statusMsg, {TextColor3 = T.Error}, 0.2)
+        local orig = inputBg.Position
+        for j = 1, 4 do
+            tween(inputBg, {Position = UDim2.new(orig.X.Scale, orig.X.Offset + 8, orig.Y.Scale, orig.Y.Offset)}, 0.04)
+            task.wait(0.04)
+            tween(inputBg, {Position = UDim2.new(orig.X.Scale, orig.X.Offset - 8, orig.Y.Scale, orig.Y.Offset)}, 0.04)
+            task.wait(0.04)
+        end
+        tween(inputBg, {Position = orig}, 0.08)
+        return
+    end
+    isValidating = true
+    statusMsg.Text = "⏳ Validating key..."
+    tween(statusMsg, {TextColor3 = T.Warning}, 0.2)
+    for _, d in pairs(redeemBtn:GetDescendants()) do
+        if d:IsA("TextLabel") then d.Text = "⏳ Checking..." end
+    end
+    task.spawn(function()
+        local isValid = false
+        local tier = "none"
+        local errMsg = "Invalid Key"
+        -- utf8.char(0x2500) .. utf8.char(0x2500) FREE-SERVICE VALIDATION utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+        -- Validate against the single free service (19097).
+        -- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)
+        -- KEY FIX: Free-first validation with service_id confirmation.
+        -- Free keys belong to service #19097 ("snowy free hub").
+        -- Premium keys belong to service #16550 ("snowy hub").
+        -- The hub validates against 19097, so we check free service FIRST.
+        -- A free key will ALWAYS fail the premium service check.
+        --
+        -- NEW LOGIC:
+        -- 1. Validate against free service (19097) first.
+        -- 2. If that passes, check response service_id to confirm tier.
+        -- 3. If free service fails, try premium service (16550).
+        -- 4. If both fail, fall back to key-prefix detection.
+        local FREE_SERVICE_ID = "19097"
+        local PREM_SERVICE_ID = "16550"
+
+        local function resolveTier(res, fallbackTier)
+            if type(res) == "table" and res.service_id then
+                local sid = tostring(res.service_id)
+                if sid == PREM_SERVICE_ID then return "premium" end
+                if sid == FREE_SERVICE_ID then return "free" end
+            end
+            if type(res) == "table" and type(res.is_premium) == "boolean" then
+                return res.is_premium and "premium" or "free"
+            end
+            return fallbackTier
+        end
+
+        -- Step 1: Validate against free service (the hub's service)
+        pcall(function()
+            Junkie.service    = "snowy free hub"
+            Junkie.identifier = JNKIE_USER_ID
+            Junkie.provider   = "Mixed"
+        end)
+        local okFree, resFree = pcall(function() return Junkie.check_key(key) end)
+        local checkResult = resFree
+
+        if okFree and type(resFree) == "table" and resFree.valid then
+            -- Key validated on free service — check response for service_id
+            isValid = true
+            tier = resolveTier(resFree, "free")
+            checkResult = resFree
+        else
+            -- Step 2: Free service failed — try premium service
+            pcall(function()
+                Junkie.service    = "snowy hub"
+                Junkie.identifier = JNKIE_USER_ID
+                Junkie.provider   = "Mixed"
+            end)
+            local okPrem, resPrem = pcall(function() return Junkie.check_key(key) end)
+            checkResult = resPrem or resFree
+
+            if okPrem and type(resPrem) == "table" and resPrem.valid then
+                -- Key validated on premium service
+                isValid = true
+                tier = resolveTier(resPrem, "premium")
+                checkResult = resPrem
+            else
+                -- Step 3: Both failed — check for HTTP error fallback
+                local isHttpError = false
+                if (type(resFree) == "table" and (resFree.error == "http 500" or resFree.error == "ERROR")) or
+                   (type(resPrem) == "table" and (resPrem.error == "http 500" or resPrem.error == "ERROR")) then
+                    isHttpError = true
+                end
+
+                if isHttpError then
+                    isValid = true
+                    tier = resolveTier(resFree or resPrem, detectKeyType(key))
+                    warn("[SnowyHub] JNKIE API returned 500/error. Local fallback authenticated.")
+                else
+                    isValid = false
+                end
+            end
+        end
+        if not isValid then
+            if type(checkResult) == "table" then
+                errMsg = checkResult.error or checkResult.message or errMsg
+            elseif type(checkResult) == "string" then
+                errMsg = checkResult
+            end
+            -- Normalize backend messages for the UI
+            if errMsg == "KEY_INVALID" then
+                errMsg = "Invalid Key"
+            elseif errMsg == "KEY_EXPIRED" then
+                errMsg = "Key expired — get a new one"
+            elseif errMsg == "HWID_BANNED" then
+                errMsg = "Hardware banned"
+            elseif errMsg == "ALREADY_USED" then
+                errMsg = "One-time key already used"
+            elseif errMsg == "HWID_MISMATCH" then
+                errMsg = "HWID limit reached"
+            elseif errMsg == "SERVICE_NOT_FOUND" then
+                errMsg = "Service not found — check Jnkie config"
+            elseif errMsg == "SERVICE_MISMATCH" then
+                errMsg = "Key is for a different service"
+            elseif errMsg == "PREMIUM_REQUIRED" then
+                errMsg = "Premium key required"
+            end
+        end
+        local tierColor = T.Success
+        local overlayBg = Color3.fromRGB(4, 20, 10)
+        local flashColor = Color3.fromRGB(0, 200, 100)
+        local overlayGrad1 = Color3.fromRGB(0, 35, 20)
+        local overlayGrad2 = Color3.fromRGB(0, 20, 8)
+        local tierLabel = "FREE ACCESS"
+        local tierSub = "Free Tier — Limited Features"
+        local tierIcon = "rbxassetid://87706885156127" -- gift
+        if tier == "free" then
+            getgenv().KEY_TIER = "free"
+            getgenv().JD_IS_PREMIUM = false
+        elseif tier == "premium" then
+            getgenv().KEY_TIER = "premium"
+            getgenv().JD_IS_PREMIUM = true
+            tierColor = T.Accent1
+            overlayBg  = Color3.fromRGB(6, 10, 22)
+            flashColor = T.Neon
+            overlayGrad1 = Color3.fromRGB(15, 30, 60)
+            overlayGrad2 = Color3.fromRGB(8, 15, 30)
+            tierLabel  = "PREMIUM ACCESS"
+            tierSub    = "Premium Tier — All unlocked"
+            tierIcon   = "rbxassetid://92253403464658" -- crown
+            local gold = Color3.fromRGB(220, 170, 30)
+            tween(centerStroke, {Color = gold}, 0.2)
+        end
+        if isValid then
+            -- Success Flow
+            statusMsg.Text = "✨ Key authenticated!"
+            tween(statusMsg, {TextColor3 = tierColor}, 0.2)
+            redeemText.Text = "Success"
+            redeemIcon.Image = "rbxassetid://105979545056636" -- check-circle
+            tween(inputStroke, {Color = tierColor, Thickness = 2}, 0.2)
+            local overlay = Instance.new("Frame")
+            overlay.Size = UDim2.new(1, 0, 1, 0)
+            overlay.BackgroundColor3 = overlayBg
+            overlay.BackgroundTransparency = 1
+            overlay.BorderSizePixel = 0
+            overlay.ZIndex = 50
+            overlay.Parent = centerPanel
+            corner(overlay, 18)
+            gradient(overlay, overlayGrad1, overlayGrad2, 110)
+            local checkIcon = Instance.new("ImageLabel")
+            checkIcon.Size = UDim2.new(0, 10, 0, 10)
+            checkIcon.Position = UDim2.new(0.5, -5, 0.45, -5)
+            checkIcon.BackgroundTransparency = 1
+            checkIcon.Image = tierIcon
+            checkIcon.ImageColor3 = tierColor
+            checkIcon.ZIndex = 52
+            checkIcon.Parent = overlay
+            local ring = Instance.new("UIStroke")
+            ring.Color = tierColor
+            ring.Thickness = 4
+            ring.Transparency = 1
+            ring.Parent = checkIcon
+            corner(checkIcon, 40)
+            local sTxt = Instance.new("TextLabel")
+            sTxt.Size = UDim2.new(1, 0, 0, 30)
+            sTxt.Position = UDim2.new(0, 0, 0.45, 60)
+            sTxt.BackgroundTransparency = 1
+            sTxt.Text = tierLabel
+            sTxt.TextTransparency = 1
+            sTxt.TextColor3 = T.White
+            sTxt.TextSize = 22
+            sTxt.Font = Enum.Font.GothamBlack
+            sTxt.ZIndex = 52
+            sTxt.Parent = overlay
+            local dTxt = Instance.new("TextLabel")
+            dTxt.Size = UDim2.new(1, 0, 0, 20)
+            dTxt.Position = UDim2.new(0, 0, 0.45, 95)
+            dTxt.BackgroundTransparency = 1
+            dTxt.Text = tierSub
+            dTxt.TextTransparency = 1
+            dTxt.TextColor3 = T.Grey
+            dTxt.TextSize = 14
+            dTxt.Font = Enum.Font.GothamMedium
+            dTxt.ZIndex = 52
+            dTxt.Parent = overlay
+            local flash = Instance.new("Frame")
+            flash.Size = UDim2.new(1, 0, 1, 0)
+            flash.BackgroundColor3 = flashColor
+            flash.BackgroundTransparency = 1
+            flash.BorderSizePixel = 0
+            flash.ZIndex = 60
+            flash.Parent = centerPanel
+            corner(flash, 18)
+            tween(flash, {BackgroundTransparency = 0.5}, 0.1)
+            task.wait(0.12)
+            tween(flash, {BackgroundTransparency = 1}, 0.3)
+            task.delay(0.5, function() flash:Destroy() end)
+            tween(overlay, {BackgroundTransparency = 0.15}, 0.25)
+            tween(checkIcon, {Size = UDim2.new(0, 75, 0, 75), Position = UDim2.new(0.5, -37.5, 0.45, -37.5)}, 0.4, Enum.EasingStyle.Elastic)
+            tween(ring, {Transparency = 0}, 0.2)
+            task.wait(0.15)
+            tween(sTxt, {TextTransparency = 0, Position = UDim2.new(0, 0, 0.45, 50)}, 0.25, Enum.EasingStyle.Back)
+            tween(dTxt, {TextTransparency = 0, Position = UDim2.new(0, 0, 0.45, 80)}, 0.25, Enum.EasingStyle.Back)
+            -- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) PERF FIX: cut cosmetic delay 2s -> 0.4s utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)
+            -- Total post-validate delay was ~1.95s of pure cosmetic waits
+            -- on top of the 3-5s hub compile freeze. Cut to 0.4s so the
+            -- user gets to the loading overlay (and hub) much faster.
+            task.wait(0.4)
+            -- NUCLEAR KEY SET: Broadcast to all levels of memory
+            local function broadcast(k, v)
+                getgenv()[k] = v
+            end
+            -- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) PERF FIX: Kill per-frame animation loop + blur BEFORE loading the hub utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+            -- The master Heartbeat runs at 60Hz touching ~12 UI instances; leaving it
+            -- alive while the 18k-line hub synchronously builds its UI freezes the game
+            -- to 0 FPS. Destroy all heavy UI *before* broadcasting SCRIPT_KEY (which
+            -- releases the outer `while not SCRIPT_KEY` loop and triggers hub load).
+            pcall(function() if masterConn then masterConn:Disconnect(); masterConn = nil end end)
+            pcall(function() if blurEffect then blurEffect.Size = 0; blurEffect:Destroy(); blurEffect = nil end end)
+            pcall(function() if Screen and Screen.Parent then Screen:Destroy() end end)
+            getgenv().UI_CLOSING = true
+            getgenv().UI_CLOSED  = true
+            -- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) PERF FIX: Persistent "Loading Hub..." overlay utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)
+            -- The hub script is ~700KB and takes 3-5s to HttpGet + loadstring
+            -- + synchronously build its UI. Without this overlay the user
+            -- sees a frozen black screen for that entire window. We park a
+            -- minimal lightweight ScreenGui in CoreGui that survives the
+            -- UI destroy, and the hub script destroys it via
+            -- getgenv().__SnowyLoadingOverlay:Destroy() when its UI is ready.
+            -- A 60s safety timeout removes it if the hub never signals.
+            local loadingOk, loadingScreen = pcall(function()
+                local sg = Instance.new("ScreenGui")
+                sg.Name = game:GetService("HttpService"):GenerateGUID(false):sub(1, 8)
+                sg.IgnoreGuiInset = true
+                sg.ResetOnSpawn = false
+                sg.DisplayOrder = 999
+                sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+                safeParent(sg)
+                local bg = Instance.new("Frame")
+                bg.Size = UDim2.new(1, 0, 1, 0)
+                bg.BackgroundColor3 = Color3.fromRGB(8, 10, 18)
+                bg.BackgroundTransparency = 0.15
+                bg.BorderSizePixel = 0
+                bg.Parent = sg
+                local card = Instance.new("Frame")
+                card.Size = UDim2.new(0, 360, 0, 140)
+                card.Position = UDim2.new(0.5, -180, 0.5, -70)
+                card.BackgroundColor3 = Color3.fromRGB(15, 18, 30)
+                card.BorderSizePixel = 0
+                card.Parent = bg
+                local cardCorner = Instance.new("UICorner"); cardCorner.CornerRadius = UDim.new(0, 14); cardCorner.Parent = card
+                local cardStroke = Instance.new("UIStroke"); cardStroke.Color = tierColor; cardStroke.Thickness = 1.5; cardStroke.Parent = card
+                local title = Instance.new("TextLabel")
+                title.Name = "TitleText"
+                title.BackgroundTransparency = 1
+                title.Size = UDim2.new(1, -20, 0, 28)
+                title.Position = UDim2.new(0, 10, 0, 16)
+                title.Font = Enum.Font.GothamBold
+                title.TextSize = 18
+                title.TextColor3 = Color3.fromRGB(235, 240, 255)
+                title.Text = "Loading Assets..."
+                title.Parent = card
+                local sub = Instance.new("TextLabel")
+                sub.Name = "SubText"
+                sub.BackgroundTransparency = 1
+                sub.Size = UDim2.new(1, -20, 0, 18)
+                sub.Position = UDim2.new(0, 10, 0, 46)
+                sub.Font = Enum.Font.GothamMedium
+                sub.TextSize = 13
+                sub.TextColor3 = Color3.fromRGB(160, 168, 190)
+                sub.Text = "Please wait a few seconds..."
+                sub.Parent = card
+                local barBg = Instance.new("Frame")
+                barBg.Size = UDim2.new(1, -40, 0, 6)
+                barBg.Position = UDim2.new(0, 20, 1, -34)
+                barBg.BackgroundColor3 = Color3.fromRGB(28, 32, 48)
+                barBg.BorderSizePixel = 0
+                barBg.Parent = card
+                local barCorner = Instance.new("UICorner"); barCorner.CornerRadius = UDim.new(1, 0); barCorner.Parent = barBg
+                -- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) STATIC loading bar (no tween animation) utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)
+                -- Filled bar with a diagonal gradient + bright accent dots
+                -- gives the impression of progress without any motion.
+                local bar = Instance.new("Frame")
+                bar.Size = UDim2.new(1, 0, 1, 0)
+                bar.BackgroundColor3 = tierColor
+                bar.BorderSizePixel = 0
+                bar.Parent = barBg
+                local bCorner = Instance.new("UICorner"); bCorner.CornerRadius = UDim.new(1, 0); bCorner.Parent = bar
+                -- Diagonal gradient stripe for a "loading" feel without motion
+                local barGrad = Instance.new("UIGradient")
+                barGrad.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0.0, tierColor),
+                    ColorSequenceKeypoint.new(0.5, Color3.new(
+                        math.min(1, tierColor.R + 0.25),
+                        math.min(1, tierColor.G + 0.25),
+                        math.min(1, tierColor.B + 0.25))),
+                    ColorSequenceKeypoint.new(1.0, tierColor),
+                })
+                barGrad.Transparency = NumberSequence.new({
+                    NumberSequenceKeypoint.new(0.0, 0.0),
+                    NumberSequenceKeypoint.new(0.5, 0.3),
+                    NumberSequenceKeypoint.new(1.0, 0.0),
+                })
+                barGrad.Rotation = 35
+                barGrad.Parent = bar
+                return sg
+            end)
+            if loadingOk and loadingScreen then
+                getgenv().__SnowyLoadingOverlay = loadingScreen
+                -- Safety fallback: auto-destroy after 60s in case hub never signals ready
+                task.delay(60, function()
+                    pcall(function()
+                        if getgenv().__SnowyLoadingOverlay == loadingScreen then
+                            loadingScreen:Destroy()
+                            getgenv().__SnowyLoadingOverlay = nil
+                        end
+                    end)
+                end)
+            end
+            -- Yield a frame so the destroy + overlay creation commits before heavy work begins
+            task.wait()
+            -- utf8.char(0x2500) .. utf8.char(0x2500) Handoff to main hub utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)
+            -- Both UI and main hub validate against the SAME free service
+            -- (19097). Pass the REAL key so the main hub wrapper re-validates
+            -- it successfully. Premium gating is enforced in orginalsrchub.txt.
+            -- utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500) .. utf8.char(0x2500)utf8.char(0x2500)
+            broadcast("SCRIPT_KEY",     key)
+            broadcast("KEY_TIER",       tier)
+            broadcast("JD_IS_PREMIUM",  tier == "premium")
+            configureService()
+        else
+            statusMsg.Text = "❌ " .. errMsg
+            tween(statusMsg, {TextColor3 = T.Error}, 0.2)
+            tween(inputStroke, {Color = T.Error, Thickness = 2}, 0.15)
+            redeemText.Text = "Redeem"
+            redeemIcon.Image = "rbxassetid://116918931002434" -- key-round
+            local orig = inputBg.Position
+            for j = 1, 4 do
+                tween(inputBg, {Position = UDim2.new(orig.X.Scale, orig.X.Offset + 12, orig.Y.Scale, orig.Y.Offset)}, 0.04)
+                task.wait(0.04)
+                tween(inputBg, {Position = UDim2.new(orig.X.Scale, orig.X.Offset - 12, orig.Y.Scale, orig.Y.Offset)}, 0.04)
+                task.wait(0.04)
+            end
+            tween(inputBg, {Position = orig}, 0.08)
+            task.wait(1.5)
+            tween(inputStroke, {Color = T.Border, Thickness = 1.5}, 0.3)
+            if statusMsg.Text:find(errMsg) then
+                statusMsg.Text = "🔑 Enter your key to access the script"
+                tween(statusMsg, {TextColor3 = T.Grey}, 0.3)
+            end
+        end
+        isValidating = false
+    end)
+end)
+while not getgenv().SCRIPT_KEY and not getgenv().UI_CLOSED do
+    task.wait(0.1)
+end
