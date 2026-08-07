@@ -1,0 +1,5115 @@
+-- This file was generated at discord.gg/syncrypt
+
+local t1 = {}
+local t2 = {}
+local v3 = unpack or table.unpack
+local Players = game:GetService("Players")
+t2[1] = game:GetService("ReplicatedStorage")
+t2[2] = game:GetService("UserInputService")
+t2[3] = game:GetService("Workspace")
+t2[4] = game:GetService("RunService")
+t2[5] = game:GetService("VirtualUser")
+t2[6] = game:GetService("StarterGui")
+t2[7] = game:GetService("Lighting")
+t2[8] = Players.LocalPlayer
+t2[9] = type(getgenv) == "function" and getgenv() or _G
+local THS_RUNTIME = t2[9].THS_RUNTIME
+local v6 = type(THS_RUNTIME) == "table"
+if v6 then
+    v6 = type(THS_RUNTIME.unload) == "function"
+end
+if v6 then
+    pcall(THS_RUNTIME.unload)
+end
+t2[10] = {
+	active = true,
+	connections = {},
+	cleanups = {}
+}
+t2[9].THS_RUNTIME = t2[10]
+t2[11] = function(p1)
+    table.insert(t2[10].connections, p1)
+
+    return p1
+end
+t2[12] = function(p2)
+    table.insert(t2[10].cleanups, p2)
+end
+t2[10].unload = function()
+    if not t2[10].active then
+        return
+    end
+
+    t2[10].active = false
+
+    for _, v in ipairs(t2[10].connections) do
+        local v35 = v
+
+        pcall(function()
+            v35:Disconnect()
+        end)
+    end
+
+    for i = #t2[10].cleanups, 1, -1 do
+        pcall(t2[10].cleanups[i])
+    end
+
+    local connections = t2[10].connections
+
+    if type(table.clear) == "function" then
+        table.clear(connections)
+    else
+        for k in pairs(connections) do
+            connections[k] = nil
+        end
+    end
+
+    local cleanups = t2[10].cleanups
+
+    if type(table.clear) == "function" then
+        table.clear(cleanups)
+    else
+        for k in pairs(cleanups) do
+            cleanups[k] = nil
+        end
+    end
+
+    if t2[9].THS_RUNTIME == t2[10] then
+        t2[9].THS_RUNTIME = nil
+    end
+end
+t2[13] = nil
+t2[14] = "Treasure Hunt Simulator 2026 v4.0"
+t2[15] = "https://raw.githubusercontent.com/GreenDeno/Venyx-UI-Library/c99f3ab172ec78957dff658b9889c6c89416f355/source.lua"
+local t3 = {
+	Access = 7733965118,
+	Farm = 7734056878,
+	Chests = 7733942651,
+	Crates = 7734021469,
+	Cosmetics = 7734021595,
+	Movement = 7743871002,
+	Teleport = 7733992789,
+	Settings = 7734053495,
+	Keybinds = 7733924046
+}
+t2[16] = nil
+t2[17] = t3
+t2[18] = function(p3, p4)
+    local v50 = p3:FindFirstChild(p4) or p3:WaitForChild(p4, 15)
+
+    if not v50 then
+        local _error = error
+        local FullName = p3:GetFullName()
+
+        _error(("Required instance %s.%s was not found after 15 seconds.").format("Required instance %s.%s was not found after 15 seconds.", FullName, p4))
+    end
+
+    return v50
+end
+t2[16] = nil
+t2[19] = function()
+    if t2[16] then
+        return t2[16]
+    end
+
+    local ok, result = pcall(function()
+        local v621 = game:HttpGet(t2[15])
+        local v622 = type(v621) ~= "string"
+
+        if not v622 then
+            v622 = #v621 < 5000
+
+            if not v622 then
+                v622 = not v621:find("library", 1, true)
+            end
+        end
+
+        if v622 then
+            error("Downloaded Venyx source failed validation.")
+        end
+
+        if type(loadstring) ~= "function" then
+            error("loadstring is unavailable.")
+        end
+
+        local v623 = v621:gsub("Parent%s*=%s*game%.CoreGui", "Parent = game.Players.LocalPlayer:WaitForChild(\"PlayerGui\")", 1):gsub("self%.container%.ScrollBarImageTransparency%s*=%s*size%s*>%s*self%.container%.AbsoluteSize%.Y", "self.container.ScrollBarImageTransparency = size > self.container.AbsoluteSize.Y and 0 or 1", 1)
+
+        return loadstring(v623)()
+    end)
+    local v59 = not ok
+
+    if not v59 then
+        v59 = type(result) ~= "table"
+
+        if not v59 then
+            v59 = type(result.new) ~= "function"
+        end
+    end
+
+    if v59 then
+        return nil
+    end
+
+    t2[16] = result
+
+    return t2[16]
+end
+t2[20] = function(p5)
+    pcall(function()
+        p5:setTheme("Background", Color3.fromRGB(12, 16, 22))
+
+        local v617 = p5
+        local t4 = { Color3.fromRGB(2, 5, 8) }
+
+        v617:setTheme("Glow", v3(t4))
+        p5:setTheme("Accent", Color3.fromRGB(198, 158, 65))
+        p5:setTheme("LightContrast", Color3.fromRGB(35, 43, 54))
+        p5:setTheme("DarkContrast", Color3.fromRGB(20, 26, 35))
+
+        local v619 = p5
+        local t5 = { Color3.fromRGB(235, 241, 246) }
+
+        v619:setTheme("TextColor", v3(t5))
+    end)
+end
+t2[21] = function(p6)
+    for _, descendant in ipairs(p6:GetDescendants()) do
+        local v56 = descendant:IsA("TextLabel")
+
+        if not v56 then
+            v56 = descendant:IsA("TextButton") or descendant:IsA("TextBox")
+        end
+
+        if v56 then
+            v56 = descendant.Font == Enum.Font.Gotham
+        end
+
+        if v56 then
+            descendant.Font = Enum.Font.GothamMedium
+        end
+    end
+end
+t2[22] = function(p7)
+    local container = p7.container
+
+    if container then
+        container = p7.container:FindFirstChild("Main")
+    end
+
+    if not container then
+        return
+    end
+
+    container.AnchorPoint = Vector2.new(0.5, 0.5)
+    container.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+    local THS_MobileScale = container:FindFirstChild("THS_MobileScale")
+
+    if not THS_MobileScale then
+        THS_MobileScale = Instance.new("UIScale")
+    end
+
+    THS_MobileScale.Name = "THS_MobileScale"
+    THS_MobileScale.Parent = container
+
+    local CurrentCamera = t2[3].CurrentCamera
+    local v45 = CurrentCamera and CurrentCamera.ViewportSize
+
+    if not v45 then
+        v45 = Vector2.new(800, 600)
+    end
+
+    local TouchEnabled = t2[2].TouchEnabled
+
+    if TouchEnabled then
+        TouchEnabled = math.clamp(math.min((v45.X - 20) / 511, (v45.Y - 20) / 428), 0.58, 1)
+    end
+
+    THS_MobileScale.Scale = TouchEnabled or 1
+end
+local v8 = t2[18](t2[1], "Events")
+t2[23] = t2[18](v8, "AreaSell")
+t2[24] = t2[18](v8, "Rebirth")
+t2[25] = t2[18](v8, "Checkout")
+t2[26] = t2[18](v8, "UpdateLeaderstats")
+t2[27] = v8:FindFirstChild("GetStats")
+t2[28] = v8:FindFirstChild("CheckIfOwned")
+t2[29] = v8:FindFirstChild("EquipBackpack")
+t2[30] = v8:FindFirstChild("EquipShovel")
+t2[31] = v8:FindFirstChild("ToggleAutoSell")
+t2[32] = v8:FindFirstChild("BuyCrate")
+t2[33] = v8:FindFirstChild("SendOpenCrate")
+t2[34] = v8:FindFirstChild("UpdateSkins")
+t2[35] = v8:FindFirstChild("UpdateHats")
+t2[36] = v8:FindFirstChild("ToggleHats")
+t2[37] = {
+	"THS4",
+	"qN8pL2sA",
+	"Z7vRxK6m",
+	"B4cD9yTu",
+	"Lm3HnQ5W"
+}
+t2[38] = "https://discord.gg/fJumERHmws"
+t2[39] = function()
+    return table.concat(t2[37], "-")
+end
+t2[40] = function(p8)
+    local _tostring = tostring
+
+    if not p8 then
+        p8 = ""
+    end
+
+    return _tostring(p8):match("^%s*(.-)%s*$")
+end
+if not (function()
+    local v62 = t2[19]()
+
+    if not v62 then
+        pcall(function()
+            t2[6]:SetCore("SendNotification", {
+				Title = t2[14],
+				Text = "Venyx UI could not be loaded.",
+				Duration = 8
+			})
+        end)
+
+        return nil
+    end
+
+    local v63 = t2[18](t2[8], "PlayerGui")
+    local v64 = t2[13] .. " Access"
+    local v65 = v63:FindFirstChild(v64)
+
+    if v65 then
+        v65:Destroy()
+    end
+
+    local ok, result = pcall(v62.new, v64)
+    local v68 = result
+    local v69 = not ok
+
+    if not v69 then
+        v69 = type(v68) ~= "table"
+
+        if not v69 then
+            v69 = not v68.container
+        end
+    end
+
+    if v69 then
+        return nil
+    end
+
+    v68.container.ResetOnSpawn = false
+    t2[20](v68)
+    t2[22](v68)
+
+    local u70 = false
+    local n1 = 0
+    local s1 = ""
+    local v73 = v68:addPage("Access", t2[17].Access)
+    local v74 = v73:addSection("Secure Access")
+    local v75 = v74:addTextbox("Access Key", "", function(p9)
+        s1 = t2[40](p9)
+    end)
+
+    v74:addButton("Unlock Control Panel", function()
+        if time() < 0 then
+            pcall(function()
+                v68:Notify("Access", "Please wait " .. tostring((math.ceil(0 - time()))) .. " seconds.")
+            end)
+
+            return
+        end
+
+        s1 = t2[40](v75.Button.Textbox.Text)
+
+        if s1 == t2[39]() then
+            u70 = true
+            pcall(function()
+                v68:Notify("Access", "Key accepted. Loading control panel...")
+            end)
+            task.wait(0.25)
+
+            local container = v68.container
+
+            if container then
+                container = v68.container.Parent
+            end
+
+            if container then
+                v68.container:Destroy()
+            end
+
+            return
+        end
+
+        n1 += 1
+
+        if n1 >= 5 then
+            n1 = 0
+
+            local _ = time() + 15
+
+            pcall(function()
+                v68:Notify("Access", "Too many attempts. Wait 15 seconds.")
+            end)
+
+            return
+        end
+
+        pcall(function()
+            v68:Notify("Access", "Invalid key. " .. tostring(5 - n1) .. " attempts left.")
+        end)
+    end)
+    v74:addButton("Copy Discord Invite", function()
+        if type(setclipboard) == "function" then
+            setclipboard(t2[38])
+            pcall(function()
+                v68:Notify("Discord", "Invite copied to clipboard.")
+            end)
+
+            return
+        end
+
+        pcall(function()
+            v68:Notify("Discord", t2[38])
+        end)
+    end)
+    t2[21](v68.container)
+    v68:SelectPage(v73, true)
+    t2[12](function()
+        local container = v68.container
+
+        if container then
+            container = v68.container.Parent
+        end
+
+        if container then
+            v68.container:Destroy()
+        end
+    end)
+
+    if not u70 and v68.container.Parent then
+        if t2[10].active then
+            if t2[9].THS_RUNTIME ~= t2[10] then
+            end
+        end
+    end
+
+    repeat
+        task.wait(0.1)
+
+        local v76 = u70
+
+        if not v76 then
+            v76 = not v68.container.Parent
+
+            if not v76 then
+                local active = t2[10].active
+
+                if active then
+                    active = t2[9].THS_RUNTIME == t2[10]
+                end
+
+                v76 = not active
+            end
+        end
+    until v76
+
+    return u70 == true
+end)() then
+    t2[10].unload()
+
+    return
+end
+local t6 = {}
+if t2[31] then
+    pcall(function()
+        t2[31]:FireServer(false)
+    end)
+end
+t6[1] = {
+	farm = "V",
+	autodig = "",
+	autoBestArea = "",
+	rebirth = "R",
+	antiafk = "",
+	disable3d = "",
+	autosell = "",
+	autoupgrade = "",
+	esp = "",
+	speed = "",
+	noclip = "",
+	fly = "",
+	infjump = "",
+	mobileMode = "",
+	panic = ""
+}
+t6[2] = {
+	W = true,
+	A = true,
+	S = true,
+	D = true,
+	LeftShift = true,
+	RightShift = true,
+	LeftControl = true,
+	RightControl = true,
+	Space = true,
+	PageUp = true,
+	MouseButton1 = true,
+	MouseButton2 = true
+}
+t1[21] = not t2[2].TouchEnabled and 0.16 or 0.2
+t1[31] = t2[2].TouchEnabled
+t1[58] = {}
+t6[3] = {
+	farm = false,
+	autodig = false,
+	autoBestArea = false,
+	rebirth = false,
+	antiafk = false,
+	disable3d = false,
+	autosell = false,
+	autoupgrade = false,
+	autoBuyCrates = false,
+	autoOpenCrates = false,
+	crateTarget = "All",
+	crateDelay = 5,
+	digArea = "Main Land",
+	digAutoTravel = false,
+	digRadius = 260,
+	digClickDelay = t1[21],
+	preferredTool = "Best",
+	sellAfterBlocks = 0,
+	sellEverySeconds = 0,
+	minedSinceSell = 0,
+	mobileMode = t1[31],
+	esp = false,
+	speed = false,
+	noclip = false,
+	fly = false,
+	infjump = false,
+	walkSpeed = 32,
+	flySpeed = 60,
+	sellX = 4,
+	sellY = 9,
+	sellZ = -161,
+	upgradeX = -64,
+	upgradeY = 9,
+	upgradeZ = -191,
+	autoLoad = true,
+	hotkeys = t1[58]
+}
+for k, v in pairs(t6[1]) do
+    t6[3].hotkeys[k] = v
+end
+t2[12](function()
+    for k, v in pairs(t6[3]) do
+        if type(v) == "boolean" then
+            t6[3][k] = false
+        end
+    end
+end)
+t6[4] = {}
+t6[5] = {}
+local color3 = Color3.fromRGB(170, 170, 180)
+local color3_2 = Color3.fromRGB(0, 150, 255)
+local color3_3 = Color3.fromRGB(220, 50, 50)
+t1[1] = Color3.fromRGB(160, 50, 255)
+t1[3] = Color3.fromRGB(200, 80, 30)
+t1[5] = Color3.fromRGB(100, 180, 220)
+t1[7] = Color3.fromRGB(0, 200, 180)
+t1[9] = Color3.fromRGB(0, 220, 255)
+t1[11] = Color3.fromRGB(255, 210, 0)
+t1[13] = Color3.fromRGB(200, 30, 30)
+t1[15] = Color3.fromRGB(200, 200, 50)
+t1[17] = Color3.fromRGB(130, 130, 140)
+t1[19] = Color3.fromRGB(105, 115, 125)
+t1[21] = Color3.fromRGB(145, 95, 52)
+t1[23] = Color3.fromRGB(185, 195, 210)
+t1[29] = Color3.fromRGB(245, 185, 55)
+t1[28] = Color3.fromRGB(245, 185, 55)
+t1[26] = Color3.fromRGB(110, 235, 245)
+t1[31] = Color3.fromRGB(55, 205, 120)
+t1[33] = Color3.fromRGB(55, 115, 230)
+t1[34] = Color3.fromRGB(155, 95, 230)
+t1[36] = Color3.fromRGB(75, 70, 95)
+t1[38] = Color3.fromRGB(235, 95, 45)
+t1[40] = Color3.fromRGB(220, 70, 45)
+t1[42] = Color3.fromRGB(255, 125, 185)
+t1[44] = Color3.fromRGB(255, 160, 70)
+t1[45] = Color3.fromRGB(95, 115, 245)
+t1[47] = Color3.fromRGB(120, 75, 45)
+t1[48] = Color3.fromRGB(85, 170, 75)
+t1[50] = Color3.fromRGB(140, 105, 75)
+t1[52] = Color3.fromRGB(255, 235, 110)
+t1[54] = Color3.fromRGB(95, 105, 115)
+t6[6] = {
+	["Common Chest"] = color3,
+	["Rare Chest"] = color3_2,
+	["Ruby Chest"] = color3_3,
+	["Epic Chest"] = t1[1],
+	["Mars Chest"] = t1[3],
+	["Astronaut Chest"] = t1[5],
+	["Atlantis Chest"] = t1[7],
+	["Diamond Chest"] = t1[9],
+	["Legendary Chest"] = t1[11],
+	["Hell Chest"] = t1[13],
+	["Dice Chest"] = t1[15],
+	["Stone Chest"] = t1[17],
+	["Rock Chest"] = t1[19],
+	["Wooden Chest"] = t1[21],
+	["Silver Chest"] = t1[23],
+	["Gold Chest"] = t1[29],
+	["Golden Chest"] = t1[28],
+	["Crystal Chest"] = t1[26],
+	["Emerald Chest"] = t1[31],
+	["Sapphire Chest"] = t1[33],
+	["Amethyst Chest"] = t1[34],
+	["Obsidian Chest"] = t1[36],
+	["Lava Chest"] = t1[38],
+	["Volcano Chest"] = t1[40],
+	["Candy Chest"] = t1[42],
+	["Toy Chest"] = t1[44],
+	["Space Chest"] = t1[45],
+	["Pirate Chest"] = t1[47],
+	["Dino Chest"] = t1[48],
+	["Medieval Chest"] = t1[50],
+	["VIP Chest"] = t1[52],
+	["Prison Chest"] = t1[54]
+}
+t6[7] = Color3.fromRGB(200, 200, 200)
+t6[8] = {}
+t6[9] = function(p10)
+    if t6[6][p10] then
+        return t6[6][p10]
+    end
+
+    if t6[8][p10] then
+        return t6[8][p10]
+    end
+
+    local n2 = 0
+
+    for i = 1, #tostring(p10) do
+        n2 = (n2 * 31 + tostring(p10):byte(i)) % 360
+    end
+
+    local color3_4 = Color3.fromHSV(n2 / 360, 0.55, 0.92)
+
+    t6[8][p10] = color3_4
+
+    return color3_4
+end;
+(function()
+    local v84 = t6[4]
+
+    if type(table.clear) == "function" then
+        table.clear(v84)
+    else
+        for k in pairs(v84) do
+            v84[k] = nil
+        end
+    end
+
+    local t7 = {}
+
+    pcall(function()
+        local Chests = t2[1]:FindFirstChild("Chests")
+
+        if Chests then
+            for _, child in ipairs(Chests:GetChildren()) do
+                local v631 = child.Name ~= "Rock"
+
+                if v631 then
+                    v631 = child.Name ~= "Stone"
+
+                    if v631 then
+                        v631 = not t7[child.Name]
+                    end
+                end
+
+                if v631 then
+                    t7[child.Name] = true
+                    table.insert(t6[4], child.Name)
+                end
+            end
+        end
+    end)
+
+    if #t6[4] == 0 then
+        for k, _ in pairs(t6[6]) do
+            table.insert(t6[4], k)
+        end
+    end
+
+    table.sort(t6[4])
+
+    for _, v in ipairs(t6[4]) do
+        if t6[5][v] == nil then
+            t6[5][v] = true
+        end
+    end
+end)()
+t1[2] = {
+	"Start",
+	"Main"
+}
+t1[6] = -17.9
+local t8 = {
+	name = "Main Land",
+	aliases = t1[2],
+	value = 5,
+	x = t1[6],
+	y = 10,
+	z = -239.1
+}
+t1[3] = {
+	"Candy Land",
+	"Candy"
+}
+local t9 = {
+	name = "Candy Area",
+	aliases = t1[3],
+	value = 10,
+	sand = 5000,
+	x = 73.3,
+	y = 10,
+	z = -230.6
+}
+t1[4] = { "Medieval Land" }
+local t10 = {
+	name = "Medieval",
+	aliases = t1[4],
+	value = 65,
+	rebirths = 100,
+	x = 553.2,
+	y = 9.8,
+	z = -898.6
+}
+t1[5] = { "Dominus" }
+t1[1] = {
+	name = "Dominus Land",
+	aliases = t1[5],
+	value = 95,
+	sand = 250000000,
+	rebirths = 75,
+	x = 553.2,
+	y = 9.8,
+	z = -898.6
+}
+t1[6] = { "Prison Land" }
+t1[2] = {
+	name = "Prison",
+	aliases = t1[6],
+	value = 85,
+	rebirths = 150,
+	x = 1251,
+	y = 9.8,
+	z = -890.2
+}
+t1[7] = { "VIP Island" }
+t6[10] = nil
+t1[13] = -600.4
+t1[3] = {
+	name = "VIP",
+	aliases = t1[7],
+	value = 50,
+	premium = true,
+	x = t1[13],
+	y = 10,
+	z = -511.2
+}
+t1[8] = { "Volcano Land" }
+t1[4] = {
+	name = "Volcano",
+	aliases = t1[8],
+	value = 110,
+	sand = 500000000,
+	rebirths = 150,
+	x = 2152.4,
+	y = 9.7,
+	z = -285.4
+}
+t1[9] = {
+	"Toy Land",
+	"Toy"
+}
+t1[15] = -115.1
+t1[5] = {
+	name = "Toyland",
+	aliases = t1[9],
+	value = 55,
+	rebirths = 75,
+	x = t1[15],
+	y = 9.8,
+	z = -880.1
+}
+t1[10] = {
+	"Launch Site",
+	"Moon Landing",
+	"Mars Landing",
+	"Space"
+}
+t1[16] = -156.7
+t1[6] = {
+	name = "Space Land",
+	aliases = t1[10],
+	value = 75,
+	rebirths = 125,
+	x = t1[16],
+	y = 10,
+	z = -243.7
+}
+t1[11] = { "Atlantis Land" }
+t1[17] = -605.2
+t1[7] = {
+	name = "Atlantis",
+	aliases = t1[11],
+	value = 40,
+	rebirths = 50,
+	x = t1[17],
+	y = 9.9,
+	z = -802.5
+}
+t1[12] = {
+	"Pirate Island",
+	"Pirate"
+}
+t1[8] = {
+	name = "Pirate Isle",
+	aliases = t1[12],
+	value = 15,
+	sand = 25000,
+	x = -713.4,
+	y = 9.7,
+	z = -122
+}
+t1[13] = {
+	"Dino Island",
+	"Dino"
+}
+t6[11] = {
+	t8,
+	t9,
+	t10,
+	t1[1],
+	t1[2],
+	t1[3],
+	t1[4],
+	t1[5],
+	t1[6],
+	t1[7],
+	t1[8],
+	{
+		name = "Dino Land",
+		aliases = t1[13],
+		value = 20,
+		sand = 125000,
+		x = 30.3,
+		y = 10,
+		z = -381.9
+	}
+}
+t1[3] = {
+	"Start",
+	"Main"
+}
+local t11 = {
+	name = "Main Land",
+	aliases = t1[3],
+	value = 5
+}
+t1[4] = {
+	"Candy Land",
+	"Candy"
+}
+local t12 = {
+	name = "Candy Area",
+	aliases = t1[4],
+	value = 10,
+	sand = 5000
+}
+t1[5] = {
+	"Pirate Island",
+	"Pirate"
+}
+t1[1] = {
+	name = "Pirate Isle",
+	aliases = t1[5],
+	value = 15,
+	sand = 25000
+}
+t1[6] = {
+	"Dino Island",
+	"Dino"
+}
+t1[2] = {
+	name = "Dino Land",
+	aliases = t1[6],
+	value = 20,
+	sand = 125000
+}
+t1[7] = { "Launch" }
+t1[3] = {
+	name = "Launch Site",
+	aliases = t1[7],
+	value = 25,
+	sand = 625000
+}
+t1[8] = {
+	"Moon Land",
+	"Moon"
+}
+t1[4] = {
+	name = "Moon Landing",
+	aliases = t1[8],
+	value = 30,
+	rebirths = 10
+}
+t1[58] = function()
+    if t2[36] then
+        pcall(function()
+            t2[36]:FireServer()
+        end)
+    end
+end
+t1[9] = { "Atlantis Land" }
+t1[5] = {
+	name = "Atlantis",
+	aliases = t1[9],
+	value = 40,
+	rebirths = 50
+}
+t1[57] = function(p11)
+    if t2[35] then
+        pcall(function()
+            t2[35]:FireServer(nil, p11)
+        end)
+    end
+end
+t1[10] = { "VIP Island" }
+t1[56] = function()
+    if t2[34] then
+        pcall(function()
+            t2[34]:FireServer(nil, "Shovel")
+        end)
+    end
+end
+t1[6] = {
+	name = "VIP",
+	aliases = t1[10],
+	value = 50,
+	premium = true
+}
+t1[11] = {
+	"Toy Land",
+	"Toy"
+}
+t1[7] = {
+	name = "Toyland",
+	aliases = t1[11],
+	value = 55,
+	rebirths = 75
+}
+t1[12] = { "Medieval Land" }
+t1[8] = {
+	name = "Medieval",
+	aliases = t1[12],
+	value = 65,
+	rebirths = 100
+}
+t1[13] = {
+	"Mars Land",
+	"Mars"
+}
+t1[9] = {
+	name = "Mars Landing",
+	aliases = t1[13],
+	value = 75,
+	rebirths = 125
+}
+t1[14] = { "Prison Land" }
+t1[10] = {
+	name = "Prison",
+	aliases = t1[14],
+	value = 85,
+	rebirths = 150
+}
+t1[15] = { "Dominus" }
+t1[11] = {
+	name = "Dominus Land",
+	aliases = t1[15],
+	value = 95,
+	sand = 250000000,
+	rebirths = 75
+}
+t1[16] = { "Volcano Land" }
+t1[12] = {
+	name = "Volcano",
+	aliases = t1[16],
+	value = 110,
+	sand = 500000000,
+	rebirths = 150
+}
+t6[12] = {
+	t11,
+	t12,
+	t1[1],
+	t1[2],
+	t1[3],
+	t1[4],
+	t1[5],
+	t1[6],
+	t1[7],
+	t1[8],
+	t1[9],
+	t1[10],
+	t1[11],
+	t1[12]
+}
+t6[13] = nil
+t1[1] = function()
+    local v92 = t6[13]()
+
+    if v92 then
+        v92 = v92:FindFirstChild("HumanoidRootPart")
+    end
+
+    return v92
+end
+t6[13] = function()
+    return t2[8].Character
+end
+t1[3] = function(p12)
+    local _tostring = tostring
+
+    if not p12 then
+        p12 = ""
+    end
+
+    return _tostring(p12):lower():gsub("[%s_%-%./]", "")
+end
+t1[2] = function()
+    local leaderstats = t2[8]:FindFirstChild("leaderstats")
+
+    if leaderstats then
+        leaderstats = leaderstats:FindFirstChild("Coins")
+    end
+
+    return leaderstats and leaderstats.Value or 0
+end
+t6[14] = t1[1]
+t6[15] = t1[2]
+t1[4] = function(p13)
+    if not p13 then
+        return nil
+    end
+
+    local v97 = p13:IsA("NumberValue")
+
+    if not v97 then
+        v97 = p13:IsA("IntValue")
+    end
+
+    if v97 then
+        return p13.Value
+    end
+
+    if p13:IsA("StringValue") then
+        return tonumber(p13.Value:gsub(",", ""))
+    end
+
+    return nil
+end
+t6[16] = t1[3]
+t6[17] = nil
+t1[5] = function(p14, p15)
+    if not p14 then
+        return nil
+    end
+    local t13 = {}
+    for v103, v104 in ipairs(p15) do
+
+        t13[t6[16](v104)] = true
+    end
+    for _, descendant in ipairs(p14:GetDescendants()) do
+        if not t13[t6[16](descendant.Name)] then
+            continue
+        end
+
+        local v107 = t6[17](descendant)
+
+        if v107 then
+            return v107
+        end
+    end
+
+    return nil
+end
+t6[17] = t1[4]
+t6[18] = t1[5]
+t6[19] = nil
+t6[20] = 0
+t1[8] = function()
+    if t6[19] and time() - t6[20] < 1.5 then
+        return t6[19]
+    end
+
+    local v108 = not t2[27]
+
+    if not v108 then
+        v108 = not t2[27]:IsA("RemoteFunction")
+    end
+
+    if v108 then
+        return nil
+    end
+
+    local ok, result = pcall(function()
+        return t2[27]:InvokeServer()
+    end)
+
+    if ok then
+        ok = type(result) == "table"
+    end
+
+    if ok then
+        time()
+
+        return result
+    end
+
+    return nil
+end
+t1[16] = function(p16)
+    local _tostring = tostring
+
+    if not p16 then
+        p16 = ""
+    end
+
+    local v113 = _tostring(p16):lower():match("^%s*(.-)%s*$")
+
+    if v113 == "" or v113 == "all" then
+        return nil
+    end
+
+    local v114, v115, v116 = ipairs(t6[11])
+    local v117
+
+    repeat
+        v116, v117 = v114(v115, v116)
+
+        if not v116 then
+            for _, v in ipairs(t6[11]) do
+                if v.name:lower():find(v113, 1, true) then
+                    return v
+                end
+            end
+
+            return nil
+        end
+    until v113 == v117.name:lower()
+
+    return v117
+end
+t1[15] = function(p17)
+    local v121 = p17
+
+    if v121 then
+        v121 = p17:IsA("BasePart")
+    end
+
+    if v121 then
+        return p17.CFrame
+    end
+
+    local v122 = p17
+
+    if v122 then
+        v122 = p17.GetPivot
+    end
+
+    if v122 then
+        local success, result = pcall(function()
+            return p17:GetPivot()
+        end)
+        if success then
+            return result
+        end
+    end
+
+    return nil
+end
+t1[9] = function(p18, p19)
+    if type(p18) ~= "table" then
+        return nil
+    end
+
+    local t15 = {}
+
+    for _, v in ipairs(p19) do
+        t15[t6[16](v)] = true
+    end
+
+    local t16 = {}
+
+    return (function(p20)
+        if type(p20) ~= "table" or t16[p20] then
+            return nil
+        end
+
+        t16[p20] = true
+
+        for k, v in pairs(p20) do
+            local v635 = k
+            local v636 = t15[t6[16](v635)]
+
+            if v636 then
+                v636 = type(v) == "number"
+            end
+
+            if v636 then
+                return v
+            end
+
+            if type(v) == "string" and t15[t6[16](v635)] then
+                local num = tonumber(v:gsub(",", ""))
+
+                if num then
+                    return num
+                end
+            end
+
+            if type(v) == "table" then
+                local v638 = (nil)(v)
+
+                if not v638 then
+                    continue
+                end
+
+                return v638
+            end
+        end
+
+        return nil
+    end)(p18)
+end
+t6[21] = t1[8]
+t6[22] = t1[9]
+t6[23] = nil
+t6[24] = nil
+t6[25] = 0
+t1[14] = function(p21, p22, p23)
+    local v134 = t6[14]()
+
+    if v134 then
+        v134.CFrame = CFrame.new(p21, p22, p23)
+    end
+end
+t6[26] = function()
+    if time() - t6[25] < 1 then
+        return t6[23], t6[24]
+    end
+
+    local v135 = t6[21]()
+    local v136 = t6[22](v135, {
+		"Sand",
+		"Dirt",
+		"Blocks",
+		"Items",
+		"Backpack",
+		"CurrentBackpack",
+		"CurrentStorage",
+		"StorageUsed",
+		"Amount"
+	})
+    local v137 = t6[22](v135, {
+		"Capacity",
+		"MaxCapacity",
+		"MaxBackpack",
+		"BackpackSize",
+		"MaxStorage",
+		"Storage",
+		"MaxItems"
+	})
+
+    if not v136 then
+        v136 = t6[18](t2[8], {
+			"Sand",
+			"Dirt",
+			"Blocks",
+			"Items",
+			"Backpack",
+			"CurrentBackpack",
+			"CurrentStorage",
+			"StorageUsed",
+			"Amount"
+		})
+    end
+
+    if not v137 then
+        v137 = t6[18](t2[8], {
+			"Capacity",
+			"MaxCapacity",
+			"MaxBackpack",
+			"BackpackSize",
+			"MaxStorage",
+			"Storage",
+			"MaxItems"
+		})
+    end
+
+    time()
+
+    return v136, v137
+end
+t6[27] = t1[14]
+t6[28] = t1[15]
+t6[29] = t1[16]
+t1[18] = {
+	2,
+	30
+}
+t1[20] = {
+	80,
+	650
+}
+t1[22] = {
+	0.1,
+	0.45
+}
+t1[30] = {
+	0,
+	50000
+}
+t1[24] = {
+	0,
+	600
+}
+t1[25] = {
+	0,
+	1000000000
+}
+t1[27] = {
+	16,
+	120
+}
+t6[30] = {
+	crateDelay = t1[18],
+	digRadius = t1[20],
+	digClickDelay = t1[22],
+	sellAfterBlocks = t1[30],
+	sellEverySeconds = t1[24],
+	minedSinceSell = t1[25],
+	walkSpeed = t1[27],
+	flySpeed = {
+		20,
+		180
+	}
+}
+t1[16] = {
+	"farm",
+	"autodig",
+	"autoBestArea",
+	"rebirth",
+	"antiafk",
+	"disable3d",
+	"autosell",
+	"autoupgrade",
+	"autoBuyCrates",
+	"autoOpenCrates",
+	"digAutoTravel",
+	"mobileMode",
+	"esp",
+	"speed",
+	"noclip",
+	"fly",
+	"infjump",
+	"autoLoad"
+}
+t6[31] = nil
+t1[19] = function()
+
+    for v140, v141 in pairs(t6[30]) do
+
+        t6[3][v140] = math.clamp(tonumber(t6[3][v140]) or v141[1], v141[1], v141[2])
+    end
+    for _, v in ipairs(t6[31]) do
+        t6[3][v] = t6[3][v] == true
+    end
+    t6[3].crateTarget = tostring(t6[3].crateTarget or "All"):sub(1, 80)
+    t6[3].preferredTool = tostring(t6[3].preferredTool or "Best"):sub(1, 80)
+    if not t6[29](t6[3].digArea) then
+        t6[3].digArea = "Main Land"
+    end
+    if type(t6[3].hotkeys) ~= "table" then
+        t6[3].hotkeys = {}
+    end
+    for k, v in pairs(t6[1]) do
+        local v146 = k
+        local str = tostring(t6[3].hotkeys[v146] or v)
+        local v148 = str == ""
+
+        if not v148 and not t6[2][str] then
+            local result
+
+            v148, result = pcall(function()
+                return Enum.KeyCode[str]
+            end)
+
+            if v148 then
+                v148 = result ~= nil
+            end
+        end
+
+        if not v148 then
+            str = v
+        end
+
+        t6[3].hotkeys[v146] = str
+    end
+end
+t1[21] = function(p24)
+    local v151 = not p24
+
+    if not v151 then
+        v151 = p24 == ""
+    end
+
+    if v151 then
+        return nil
+    end
+
+    local ok, result = pcall(function()
+        return Enum.KeyCode[p24]
+    end)
+
+    return ok and result or nil
+end
+t1[22] = function(p25)
+    return t6[2][p25] == true
+end
+t6[31] = t1[16]
+t1[23] = function(p26)
+    if not p26 then
+        return false
+    end
+
+    local Backpack = t2[8]:FindFirstChild("Backpack")
+    local StarterGear = t2[8]:FindFirstChild("StarterGear")
+
+    if Backpack then
+        Backpack = Backpack:FindFirstChild(p26)
+    end
+
+    if Backpack then
+        return true
+    end
+
+    if StarterGear then
+        StarterGear = StarterGear:FindFirstChild(p26)
+    end
+
+    if StarterGear then
+        return true
+    end
+
+    local v158 = t6[13]()
+
+    if v158 then
+        v158 = v158:FindFirstChild(p26)
+    end
+
+    if v158 then
+        return true
+    end
+
+    local v159, v160, v161 = ipairs(t2[8]:GetDescendants())
+
+    repeat
+        local v162
+
+        repeat
+            v161, v162 = v159(v160, v161)
+
+            if not v161 then
+                local v163 = t2[28]
+
+                if v163 then
+                    v163 = t2[28]:IsA("RemoteFunction")
+                end
+
+                if v163 then
+                    local ok, result = pcall(function()
+                        return t2[28]:InvokeServer(p26)
+                    end)
+
+                    if ok then
+                        ok = result == true
+                    end
+
+                    if ok then
+                        return true
+                    end
+                end
+
+                return false
+            end
+        until p26 == v162.Name
+
+        if v162:IsA("BoolValue") then
+            return v162.Value == true
+        end
+
+        local v166 = v162:IsA("StringValue")
+
+        if not v166 then
+            v166 = v162:IsA("IntValue")
+
+            if not v166 then
+                v166 = v162:IsA("NumberValue")
+
+                if not v166 then
+                    v166 = v162:IsA("Folder") or v162:IsA("Tool")
+                end
+            end
+        end
+    until v166
+
+    return true
+end
+t1[20] = function(p27, p28, p29, p30)
+    local v171 = t6[14]()
+
+    if not v171 then
+        return
+    end
+
+    local CFrame2 = v171.CFrame
+
+    v171.CFrame = CFrame.new(p27, p28, p29)
+    task.wait(0.2)
+
+    if p30 then
+        p30()
+    end
+
+    task.wait(0.3)
+
+    if v171.Parent then
+        v171.CFrame = CFrame2
+    end
+end
+t6[32] = t1[19]
+t6[33] = t1[20]
+t6[34] = t1[21]
+t1[25] = function(p31)
+    local v174 = p31 and p31:FindFirstChild("Price")
+
+    if v174 then
+        v174 = tonumber(v174.Value)
+    end
+
+    return v174 or nil
+end
+t6[35] = t1[22]
+t6[36] = t1[23]
+t6[37] = nil
+t6[38] = nil
+t6[39] = 0
+t1[24] = function(p32)
+    local v176 = not p32
+
+    if v176 then
+        v176 = t6[37] and time() - t6[39] < 2
+    end
+
+    if v176 then
+        return table.clone(t6[37])
+    end
+
+    local t17 = {}
+    local Backpack = t2[8]:FindFirstChild("Backpack")
+    local StarterGear = t2[8]:FindFirstChild("StarterGear")
+    local v180 = t6[13]()
+
+    local function v181(p33)
+        if not p33 then
+            return
+        end
+
+        local GetChildren = p33.GetChildren
+
+        for _, v in ipairs(GetChildren(p33)) do
+            t17[v.Name] = true
+        end
+    end
+
+    v181(Backpack)
+    v181(StarterGear)
+    v181(v180)
+
+    for _, descendant in ipairs(t2[8]:GetDescendants()) do
+        if descendant:IsA("BoolValue") then
+            if descendant.Value == true then
+                t17[descendant.Name] = true
+            end
+        else
+            local v184 = descendant:IsA("StringValue")
+
+            if not v184 then
+                v184 = descendant:IsA("IntValue")
+
+                if not v184 then
+                    v184 = descendant:IsA("NumberValue")
+
+                    if not v184 then
+                        v184 = descendant:IsA("Folder")
+
+                        if not v184 then
+                            v184 = descendant:IsA("Tool")
+                        end
+                    end
+                end
+            end
+
+            if v184 then
+                t17[descendant.Name] = true
+            end
+        end
+    end
+
+    time()
+
+    return table.clone(t17)
+end
+t1[37] = function(p34)
+    local n3 = 1e999
+    local v187
+    for _, v in ipairs(t6[11]) do
+        local Magnitude = (p34 - Vector3.new(v.x, v.y, v.z)).Magnitude
+
+        if Magnitude < n3 then
+            n3 = Magnitude
+            v187 = v
+        end
+    end
+
+    return v187, n3
+end
+t1[38] = function(p35, p36, p37)
+    if not p35 then
+        return false
+    end
+
+    if p35.name == "Main Land" then
+        return true
+    end
+
+    if p35.premium then
+        local v194 = t6[36](p35.name)
+
+        if not v194 then
+            v194 = t6[36]("VIP Island")
+        end
+
+        return v194
+    end
+
+    local v195 = not p35.sand
+
+    if not v195 then
+        v195 = p36 and p36 >= p35.sand
+    end
+
+    local v196 = not p35.rebirths
+
+    if not v196 then
+        v196 = p37 and p37 >= p35.rebirths
+    end
+
+    if p35.sand and p35.rebirths then
+        return v195 or v196
+    end
+
+    return v195 and v196
+end
+t1[35] = function(p38)
+    local v198 = t6[21]()
+    local v199 = t6[22](v198, p38)
+
+    if v199 then
+        return v199
+    end
+
+    local leaderstats = t2[8]:FindFirstChild("leaderstats")
+    local v201 = t6[18](leaderstats, p38)
+
+    if not v201 then
+        v201 = t6[18](t2[8], p38)
+    end
+
+    return v201
+end
+t6[40] = nil
+t1[32] = function()
+    local Shovels = t2[1]:FindFirstChild("Shovels")
+    local v203 = t6[38](Shovels, t6[40]())
+
+    if v203 and t2[30] then
+        pcall(function()
+            t2[30]:FireServer(v203.Name)
+        end)
+    end
+
+    local v204 = t6[13]()
+
+    if v204 then
+        v204 = v204:FindFirstChildOfClass("Humanoid")
+    end
+
+    local v205 = v204
+    local v206 = v205
+    local Backpack = t2[8]:FindFirstChild("Backpack")
+
+    if v206 then
+        v206 = Backpack and v203
+    end
+
+    if v206 then
+        local Name = Backpack:FindFirstChild(v203.Name)
+
+        if Name then
+            pcall(function()
+                v205:EquipTool(Name)
+            end)
+        end
+    end
+end
+t1[26] = function(p39, p40)
+    if not p39 then
+        return
+    end
+
+    pcall(function()
+        t2[25]:FireServer(p39)
+    end)
+    task.wait(0.25)
+
+    if p40 then
+        pcall(function()
+            p40:FireServer(p39)
+        end)
+    end
+end
+t6[40] = t1[24]
+t6[41] = t1[25]
+t1[39] = function(p41)
+    while p41 and p41 ~= t2[3] do
+        if p41:IsA("BasePart") then
+            return p41
+        end
+
+        if p41:IsA("Model") then
+            if p41.PrimaryPart then
+                return p41.PrimaryPart
+            end
+
+            local BasePart = p41:FindFirstChildWhichIsA("BasePart", true)
+
+            if BasePart then
+                return BasePart
+            end
+        end
+
+        p41 = p41.Parent
+    end
+
+    return nil
+end
+t6[42] = t1[26]
+t1[33] = function(p42)
+    local _tostring = tostring
+
+    if not p42 then
+        p42 = ""
+    end
+
+    local v217 = _tostring(p42):match("^%s*(.-)%s*$")
+    local v218 = v217 == ""
+
+    if not v218 then
+        v218 = v217:lower() == "best"
+
+        if not v218 then
+            v218 = v217:lower() == "auto"
+        end
+    end
+
+    if v218 then
+        return false
+    end
+
+    if t2[30] then
+        pcall(function()
+            t2[30]:FireServer(v217)
+        end)
+    end
+
+    local v219 = t6[13]()
+    local v220 = v219
+
+    if v219 then
+        v220 = v219:FindFirstChildOfClass("Humanoid")
+    end
+
+    local v221 = v220
+    local Backpack = t2[8]:FindFirstChild("Backpack")
+
+    if v219 then
+        v219 = v219:FindFirstChild(v217)
+    end
+
+    if not v219 then
+        if Backpack then
+            Backpack = Backpack:FindFirstChild(v217)
+        end
+
+        v219 = Backpack
+    end
+
+    local v223 = v219
+    local v224 = v221
+
+    if v224 then
+        v224 = v223
+
+        if v224 then
+            v224 = v223:IsA("Tool")
+        end
+    end
+
+    if v224 then
+        pcall(function()
+            v221:EquipTool(v223)
+        end)
+
+        return true
+    end
+
+    return false
+end
+t1[31] = function(p43, p44, p45)
+    if not p43 then
+        return nil, nil
+    end
+    local _, v229 = t6[38](p43, p45)
+    if not v229 then
+        v229 = -1e999
+    end
+    local n4 = -1e999
+    local v231
+    for _, child in ipairs(p43:GetChildren()) do
+        local v234 = t6[41](child)
+        local childName = child.Name
+        local v236 = if not p45 then t6[36](childName) else p45[childName] == true
+        local v237 = v234
+
+        if v234 then
+            v237 = v229 < v234
+
+            if v237 then
+                v237 = v234 <= p44
+
+                if v237 then
+                    v237 = n4 < v234 and not v236
+                end
+            end
+        end
+
+        if v237 then
+            v231 = child
+            n4 = v234
+        end
+    end
+
+    return v231, n4
+end
+t1[36] = function(p46, p47)
+    local v240 = t6[16](p47)
+
+    if v240 == "" then
+        return false
+    end
+
+    local v241 = t6[16](p46.name)
+
+    if v240 == v241 or v240:find(v241, 1, true) then
+        return true
+    end
+
+    for _, v in ipairs(p46.aliases or {}) do
+        local v244 = t6[16](v)
+
+        if v240 == v244 or v240:find(v244, 1, true) then
+            return true
+        end
+    end
+
+    return false
+end
+t6[43] = t1[31]
+t6[38] = function(p48, p49)
+    if not p48 then
+        return nil, nil
+    end
+    local v247
+    local n5 = -1e999
+    local GetChildren = p48.GetChildren
+    for _, v in ipairs(GetChildren(p48)) do
+        local v252 = t6[41](v) or 0
+        local vName = v.Name
+        local v254 = if not p49 then t6[36](vName) else p49[vName] == true
+
+        if n5 < v252 and v254 then
+            v247 = v
+            n5 = v252
+        end
+    end
+
+    return v247, n5
+end
+t6[44] = t1[32]
+t6[45] = t1[33]
+local function v20()
+    local v255 = t6[13]()
+
+    if v255 then
+        v255 = v255:FindFirstChildOfClass("Tool")
+    end
+
+    local str = tostring(t6[3].preferredTool or "Best")
+
+    if v255 then
+        local v257 = str == "Best"
+
+        if not v257 then
+            v257 = str == "Auto" or str == v255.Name
+        end
+
+        v255 = v257
+    end
+
+    if v255 then
+        return true
+    end
+
+    if t6[45](str) then
+        return true
+    end
+
+    t6[44]()
+
+    local v258 = t6[13]()
+
+    if v258 then
+        v258 = v258:FindFirstChildOfClass("Tool") ~= nil
+    end
+
+    return v258
+end
+t6[46] = {}
+t6[47] = t1[35]
+t6[48] = t1[36]
+t6[49] = t1[37]
+t1[40] = function(p50, p51)
+    local t18 = {}
+    local n6 = 0
+
+    while true do
+        local v263 = p50
+
+        if p50 then
+            v263 = p50 ~= t2[3] and n6 < 6
+        end
+
+        if not v263 then
+            break
+        end
+
+        table.insert(t18, p50.Name)
+
+        local v264 = p50:IsA("TextLabel")
+
+        if not v264 then
+            v264 = p50:IsA("TextButton")
+        end
+
+        if v264 then
+            table.insert(t18, p50.Text)
+        end
+
+        p50 = p50.Parent
+        n6 += 1
+    end
+
+    local v265 = table.concat(t18, " ")
+
+    for i = #t6[12], 1, -1 do
+        local v267 = t6[12][i]
+
+        if t6[48](v267, v265) then
+            return v267
+        end
+    end
+
+    return t6[49](p51)
+end
+t6[50] = t1[38]
+t6[51] = t1[39]
+t6[52] = t1[40]
+t6[53] = nil
+t6[54] = 0
+t1[43] = t6[46]
+t1[41] = function()
+    local v268 = t6[53]
+    if v268 then
+        v268 = t6[53].Parent and time() - t6[54] < 20
+    end
+    if v268 then
+        return t6[53]
+    end
+    local v269 = t6[47]({
+		"TotalSand",
+		"SandDug",
+		"TotalSandDug",
+		"BlocksDug",
+		"TotalBlocks",
+		"TotalDug"
+	})
+    local v270 = t6[47]({
+		"Rebirths",
+		"Rebirth",
+		"TotalRebirths"
+	})
+    local t19 = {}
+    local t20 = {}
+    for v275, v276 in ipairs(t2[3]:GetDescendants()) do
+
+        local v277 = v276:IsA("TextLabel")
+
+        if not v277 then
+            v277 = v276:IsA("TextButton")
+        end
+
+        local v278 = v277 and v276.Text or ""
+
+        if t6[16](v276.Name .. " " .. v278):find("sell", 1, true) then
+            local v279 = t6[51](v276)
+
+            if v279 and not t20[v279] then
+                t20[v279] = true
+
+                local v280 = t6[52](v276, v279.Position)
+
+                if v280 and t6[50](v280, v269, v270) then
+                    table.insert(t19, {
+						part = v279,
+						area = v280
+					})
+                end
+            end
+        end
+    end
+    table.sort(t19, function(p52, p53)
+        if p52.area.value == p53.area.value then
+            local v645 = t6[14]()
+
+            if not v645 then
+                return p52.area.name < p53.area.name
+            end
+
+            return (v645.Position - p52.part.Position).Magnitude < (v645.Position - p53.part.Position).Magnitude
+        end
+
+        return p52.area.value > p53.area.value
+    end)
+    local v281 = t19[1]
+    if v281 then
+        v281 = t19[1].part
+    end
+    local v282 = v281 or nil
+    if not v282 then
+        local v283 = t6[29](t6[3].digArea)
+        local v284 = t6[14]()
+
+        if v284 then
+            v284 = t6[49](v284.Position)
+        end
+
+        local v285 = t6[50]
+        local v286 = v284 or nil
+        local v287 = v285(v283, v269, v270) and v283 or v286
+
+        if v287 and t6[50](v287, v269, v270) then
+            time()
+
+            return Vector3.new(v287.x, v287.y, v287.z)
+        end
+    end
+    time()
+
+    return v282
+end
+t1[43].getProgressValue = t6[47]
+t1[43] = t6[46]
+t1[35] = function()
+    local t21 = {
+		Best = true
+	}
+    local t22 = { "Best" }
+    local v290 = t6[13]()
+    local Backpack = t2[8]:FindFirstChild("Backpack")
+    local StarterGear = t2[8]:FindFirstChild("StarterGear")
+
+    if v290 then
+        for _, child in ipairs(v290:GetChildren()) do
+            local v295 = child
+
+            if child then
+                v295 = child:IsA("Tool")
+
+                if v295 then
+                    v295 = not t21[child.Name]
+                end
+            end
+
+            if v295 then
+                t21[child.Name] = true
+                table.insert(t22, child.Name)
+            end
+        end
+    end
+
+    if Backpack then
+        for _, child in ipairs(Backpack:GetChildren()) do
+            local v298 = child
+
+            if child then
+                v298 = child:IsA("Tool")
+
+                if v298 then
+                    v298 = not t21[child.Name]
+                end
+            end
+
+            if v298 then
+                t21[child.Name] = true
+                table.insert(t22, child.Name)
+            end
+        end
+    end
+
+    if StarterGear then
+        local GetChildren = StarterGear.GetChildren
+
+        for _, v in ipairs(GetChildren(StarterGear)) do
+            local v302 = v
+
+            if v then
+                v302 = v:IsA("Tool")
+
+                if v302 then
+                    v302 = not t21[v.Name]
+                end
+            end
+
+            if v302 then
+                t21[v.Name] = true
+                table.insert(t22, v.Name)
+            end
+        end
+    end
+
+    table.sort(t22, function(p54, p55)
+        if p54 == "Best" then
+            return true
+        end
+
+        if p55 == "Best" then
+            return false
+        end
+
+        local lower = p55.lower
+
+        return p54:lower() < lower(p55)
+    end)
+
+    return t22
+end
+t1[43].isAreaUnlocked = t6[50]
+t1[43] = t6[46]
+t1[43].findBestSellTarget = t1[41]
+t6[55] = t1[35]
+t6[56] = {}
+t6[57] = nil
+t1[37] = function()
+    if not t6[3].esp then
+        for k, v in pairs(t6[56]) do
+            v:Destroy()
+            t6[56][k] = nil
+        end
+
+        return
+    end
+
+    local SandBlocks = t2[3]:FindFirstChild("SandBlocks")
+
+    if not SandBlocks then
+        return
+    end
+
+    local GetChildren = SandBlocks.GetChildren
+
+    for _, v in ipairs(GetChildren(SandBlocks)) do
+        if v:FindFirstChild("Chest") then
+            local v309
+            local Mat = v:FindFirstChild("Mat")
+            local v311 = Mat
+            if Mat then
+                v311 = Mat:IsA("StringValue")
+            end
+            if v311 then
+                v309 = Mat.Value:match("^%s*(.-)%s*$")
+            end
+            if not v309 then
+                for _, child in ipairs(v:GetChildren()) do
+                    local v314 = child.Name ~= "Chest"
+
+                    if v314 then
+                        v314 = child.Name:find("Chest")
+                    end
+
+                    if v314 then
+                        v309 = child.Name
+
+                        break
+                    end
+                end
+            end
+            if v309 and t6[5][v309] then
+                if not t6[56][v] then
+                    local Highlight = Instance.new("Highlight")
+
+                    Highlight.Name = "TH_ESP"
+                    Highlight.Adornee = v
+                    Highlight.FillColor = t6[9](v309) or t6[7]
+                    Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    Highlight.FillTransparency = 0.5
+                    Highlight.OutlineTransparency = 0.2
+                    Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    Highlight.Parent = v
+                    t6[56][v] = Highlight
+                end
+            elseif t6[56][v] then
+                t6[56][v]:Destroy()
+                t6[56][v] = nil
+            end
+        end
+    end
+
+    for k, v in pairs(t6[56]) do
+        local v318 = k
+
+        if not v318.Parent then
+            v:Destroy()
+            t6[56][v318] = nil
+        end
+    end
+end
+t1[39] = function()
+    t6[3].esp = false
+    t6[57]()
+end
+t6[57] = t1[37]
+t2[12](t1[39])
+t1[38] = task
+t6[58] = nil
+t1[38].spawn(function()
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active then
+            break
+        end
+
+        task.wait(1.5)
+
+        local active2 = t2[10].active
+
+        if active2 then
+            active2 = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active2 then
+            return
+        end
+
+        pcall(t6[57])
+    end
+end)
+t1[39] = function()
+    local v321, v322 = t6[26]()
+
+    if v321 and (v322 and v322 > 0) then
+        return v322 <= v321, v321, v322
+    end
+
+    return false, v321, v322
+end
+t6[59] = false
+t1[40] = function(p56)
+    local v324 = not p56
+
+    if v324 then
+        v324 = not t6[3].autosell
+    end
+
+    if v324 or t6[59] then
+        return
+    end
+
+    local v325 = t6[46].findBestSellTarget()
+    local v326 = typeof(v325) == "Instance" and v325.Position
+
+    if not v326 then
+        v326 = typeof(v325) == "Vector3" and v325
+
+        if not v326 then
+            v326 = Vector3.new(t6[3].sellX, t6[3].sellY, t6[3].sellZ)
+        end
+    end
+
+    t6[33](v326.X, v326.Y + 2, v326.Z, function()
+        pcall(function()
+            t2[23]:FireServer()
+        end)
+        task.wait(0.2)
+        pcall(function()
+            t2[26]:FireServer()
+        end)
+    end)
+    t6[59] = false
+end
+t6[60] = t1[39]
+t6[61] = t1[40]
+local function v21()
+    t6[3].minedSinceSell = (tonumber(t6[3].minedSinceSell) or 0) + 1
+
+    local v327 = tonumber(t6[3].sellAfterBlocks) or 0
+    local autosell = t6[3].autosell
+
+    if autosell then
+        autosell = v327 > 0
+
+        if autosell then
+            autosell = v327 <= t6[3].minedSinceSell and not t6[59]
+        end
+    end
+
+    if autosell then
+        t6[3].minedSinceSell = 0
+        task.spawn(function()
+            t6[61](true)
+        end)
+    end
+end
+task.spawn(function()
+    local n7 = 0
+    local v330 = time()
+
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active then
+            break
+        end
+
+        task.wait(1)
+
+        local active3 = t2[10].active
+
+        if active3 then
+            active3 = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active3 then
+            return
+        end
+
+        if t6[3].autosell then
+            local v333, v334, v335 = t6[60]()
+
+            if v333 then
+                t6[61]()
+            end
+
+            local v336 = tonumber(t6[3].sellEverySeconds) or 0
+
+            if v336 > 0 and v336 <= time() - v330 then
+                v330 = time()
+                t6[61](true)
+            end
+
+            local v337 = not v334
+
+            if v337 then
+                v337 = not v335
+
+                if v337 then
+                    v337 = t6[3].farm and time() - n7 > 15
+                end
+            end
+
+            if v337 then
+                n7 = time()
+                t6[61]()
+            end
+        end
+    end
+end)
+t6[62] = false
+t6[63] = function(p57, p58)
+    local Backpacks = t2[1]:FindFirstChild("Backpacks")
+    if Backpacks then
+        local _, v342 = t6[38](Backpacks, p58)
+
+        if v342 then
+            local v343, v344 = t6[43](Backpacks, p57, p58)
+
+            if v343 then
+                return v343.Name, v344
+            end
+        end
+    end
+    local Modules = t2[1]:FindFirstChild("Modules")
+    local v346 = Modules and Modules:FindFirstChild("Backpacks")
+    local v347 = not v346
+    if not v347 then
+        v347 = not v346:IsA("ModuleScript")
+    end
+    if v347 then
+        return nil, nil
+    end
+    local ok, result = pcall(require, v346)
+    local v350 = not ok
+    if not v350 then
+        v350 = type(result) ~= "table"
+    end
+    if v350 then
+        return nil, nil
+    end
+    local n8 = -1e999
+    for v354, v355 in pairs(result) do
+
+        local v356 = type(v354) == "string" and v354 or nil
+        local v357
+        if type(v355) == "table" then
+            v356 = v355.Name or (v355.name or v356)
+
+            local _tonumber = tonumber
+            local Price = v355.Price
+
+            if not Price then
+                Price = v355.price
+
+                if not Price then
+                    Price = v355.Cost or v355.cost
+                end
+            end
+
+            v357 = _tonumber(Price)
+        elseif type(v355) == "number" then
+            v357 = v355
+        end
+        local v360 = v356
+        if v360 then
+            v360 = if not p58 then t6[36](v356) else p58[v356] == true
+        end
+        if v356 then
+            v356 = v357
+
+            if v357 then
+                if v360 then
+                    v360 = n8 < v357
+                end
+
+                v356 = v360
+            end
+        end
+        if v356 then
+            n8 = v357
+        end
+    end
+    if n8 == -math.huge then
+        return nil, nil
+    end
+    local v361
+    local n9 = -1e999
+    for k, v in pairs(result) do
+        local v365 = k
+        local v366
+        local v367 = type(v365) == "string" and v365 or nil
+        if type(v) == "table" then
+            v367 = v.Name or (v.name or v367)
+
+            local _tonumber = tonumber
+            local Price = v.Price
+
+            if not Price then
+                Price = v.price
+
+                if not Price then
+                    Price = v.Cost or v.cost
+                end
+            end
+
+            v366 = _tonumber(Price)
+        elseif type(v) == "number" then
+            v366 = v
+        end
+        local v370 = v367
+        if v370 then
+            v370 = if not p58 then t6[36](v367) else p58[v367] == true
+        end
+        local v371 = v367
+        if v367 then
+            v371 = v366
+
+            if v366 then
+                v371 = n8 < v366
+
+                if v371 then
+                    v371 = v366 <= p57
+
+                    if v371 then
+                        v371 = false
+
+                        if n9 < v366 then
+                            v371 = not v370
+                        end
+                    end
+                end
+            end
+        end
+        if v371 then
+            v361 = v367
+            n9 = v366
+        end
+    end
+
+    return v361, n9
+end
+local function v22(p59)
+    local v373 = not p59
+
+    if v373 then
+        v373 = not t6[3].autoupgrade
+    end
+
+    if v373 or t6[62] then
+        return
+    end
+
+    local v374 = t6[15]()
+    local v375 = t6[40]()
+    local Shovels = t2[1]:FindFirstChild("Shovels")
+    local v377, v378 = t6[43](Shovels, v374, v375)
+    local v379 = v377
+    local v380 = v378
+    local v381 = v379
+
+    if v381 then
+        v381 = v380
+
+        if v381 then
+            v381 = math.max(0, v374 - v380)
+        end
+    end
+
+    local v382 = v381 or v374
+    local v383 = t6[63](v382, v375)
+
+    if not v379 and not v383 then
+        return
+    end
+
+    pcall(function()
+        if v379 and v380 then
+            t6[42](v379.Name, t2[30])
+        end
+
+        if v383 then
+            t6[42](v383, t2[29])
+        end
+
+        pcall(function()
+            t2[26]:FireServer()
+        end)
+    end)
+    t6[62] = false
+end
+task.spawn(function()
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active then
+            break
+        end
+
+        task.wait(12)
+
+        local active4 = t2[10].active
+
+        if active4 then
+            active4 = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active4 then
+            return
+        end
+
+        if t6[3].autoupgrade then
+            v22()
+        end
+    end
+end)
+t6[64] = false
+t6[65] = {
+	"Basic Crate",
+	"Skin Crate",
+	"Hat Crate",
+	"Common Crate",
+	"Rare Crate",
+	"Epic Crate",
+	"Legendary Crate"
+}
+t1[47] = function(p60)
+    local v387 = not p60
+
+    if not v387 then
+        v387 = not p60.Name
+
+        if not v387 then
+            v387 = not p60.Name:find("Crate")
+        end
+    end
+
+    if v387 then
+        return false
+    end
+
+    local v388 = p60.Name == "Crates"
+
+    if not v388 then
+        v388 = p60.Name == "OwnedCrates"
+
+        if not v388 then
+            v388 = p60.Name == "CrateInventory"
+        end
+    end
+
+    if v388 then
+        return false
+    end
+
+    local v389 = p60:IsA("RemoteEvent")
+
+    if not v389 then
+        v389 = p60:IsA("RemoteFunction")
+
+        if not v389 then
+            v389 = p60:IsA("Script")
+
+            if not v389 then
+                v389 = p60:IsA("LocalScript")
+
+                if not v389 then
+                    v389 = p60:IsA("ModuleScript")
+                end
+            end
+        end
+    end
+
+    if v389 then
+        return false
+    end
+
+    return true
+end
+t1[46] = function(p61)
+    if type(p61) ~= "string" then
+        return nil
+    end
+
+    local v391 = p61:match("^%s*(.-)%s*$")
+
+    if v391 == "" then
+        return nil
+    end
+
+    return v391
+end
+t1[54] = function()
+    if t2[34] then
+        pcall(function()
+            t2[34]:FireServer(nil, "Both")
+        end)
+    end
+end
+t6[66] = t1[46]
+t6[67] = t1[47]
+t1[55] = function()
+    if t2[34] then
+        pcall(function()
+            t2[34]:FireServer(nil, "Backpack")
+        end)
+    end
+end
+t6[68] = nil
+t1[51] = function(p62)
+    if typeof(p62) == "Instance" then
+        return p62
+    end
+
+    local Crates = t2[1]:FindFirstChild("Crates")
+
+    if Crates and p62 then
+        local p62_2 = Crates:FindFirstChild(p62)
+
+        if p62_2 then
+            return p62_2
+        end
+
+        local v395 = tostring(p62):lower()
+        local GetChildren = Crates.GetChildren
+
+        for _, v in ipairs(GetChildren(Crates)) do
+            if v395 == v.Name:lower() then
+                return v
+            end
+
+            local CaseName = v:FindFirstChild("CaseName")
+
+            if CaseName then
+                CaseName = v395 == tostring(CaseName.Value):lower()
+            end
+
+            if CaseName then
+                return v
+            end
+        end
+    end
+
+    return nil
+end
+t6[69] = 0
+t6[70] = nil
+t1[49] = function(p63)
+    local v401 = not p63
+
+    if v401 then
+        v401 = t6[68] and time() - t6[69] < 20
+    end
+
+    if v401 then
+        return table.clone(t6[68])
+    end
+
+    local t23 = {}
+    local t24 = {}
+
+    local function v404(p64)
+        local v652 = t6[66](p64)
+
+        if v652 and not t23[v652] then
+            t23[v652] = true
+            table.insert(t24, v652)
+        end
+    end
+
+    local Crates = t2[1]:FindFirstChild("Crates")
+
+    if Crates then
+        local GetChildren = Crates.GetChildren
+
+        for _, v in ipairs(GetChildren(Crates)) do
+            v404(v.Name)
+        end
+    end
+
+    local PlayerGui = t2[8]:FindFirstChild("PlayerGui")
+
+    if PlayerGui then
+        PlayerGui = PlayerGui:FindFirstChild("Gui")
+    end
+
+    local v410 = PlayerGui
+
+    if PlayerGui then
+        v410 = PlayerGui:FindFirstChild("Inventory")
+
+        if v410 then
+            v410 = PlayerGui.Inventory:FindFirstChild("Crates")
+        end
+    end
+
+    if v410 then
+        local Scroll = v410:FindFirstChild("Scroll")
+
+        if Scroll then
+            Scroll = v410.Scroll:FindFirstChild("Frame")
+        end
+
+        v410 = Scroll
+    end
+
+    if v410 then
+        local GetChildren = v410.GetChildren
+
+        for _, v in ipairs(GetChildren(v410)) do
+            local v415 = v:IsA("ImageButton")
+
+            if v415 then
+                v415 = v.Name ~= "Example"
+            end
+
+            if v415 then
+                v404(v.Name)
+            end
+        end
+    end
+
+    local v416 = PlayerGui and PlayerGui:FindFirstChild("Crates")
+
+    if v416 then
+        for _, descendant in ipairs(v416:GetDescendants()) do
+            local v419 = descendant:IsA("ImageButton")
+
+            if v419 then
+                v419 = descendant.Name ~= "Example"
+
+                if v419 then
+                    v419 = not Crates or Crates:FindFirstChild(descendant.Name)
+                end
+            end
+
+            if v419 then
+                v404(descendant.Name)
+            end
+        end
+    end
+
+    local t25 = {
+		t2[8],
+		t2[1]
+	}
+
+    for _, v in ipairs(t25) do
+        for _, descendant in ipairs(v:GetDescendants()) do
+            if t6[67](descendant) then
+                v404(descendant.Name)
+            end
+
+            if descendant:IsA("StringValue") then
+                local v425 = t6[66](descendant.Value)
+                local v426 = v425
+
+                if v425 then
+                    v426 = Crates and Crates:FindFirstChild(v425)
+
+                    if not v426 then
+                        v426 = v425:find("Crate")
+
+                        if not v426 then
+                            v426 = v425:find("Case")
+                        end
+                    end
+                end
+
+                if v426 then
+                    v404(v425)
+                end
+            end
+        end
+    end
+
+    table.sort(t24, function(p65, p66)
+        return p65:lower() < p66:lower()
+    end)
+    time()
+
+    return table.clone(t24)
+end
+t1[50] = function()
+    local v427 = t6[66](t6[3].crateTarget)
+    local v428 = v427
+
+    if v427 then
+        v428 = v427:lower() ~= "all"
+    end
+
+    if v428 then
+        return { v427 }
+    end
+
+    local v429 = t6[70]()
+
+    if #v429 > 0 then
+        return v429
+    end
+
+    local t26 = {}
+
+    for _, v in ipairs(t6[65]) do
+        table.insert(t26, v)
+    end
+
+    return t26
+end
+t6[70] = t1[49]
+t6[71] = t1[50]
+t6[72] = t1[51]
+t1[53] = function(p67)
+    if not p67 then
+        return false
+    end
+
+    local v434 = t6[72](p67)
+
+    if not v434 then
+        return false
+    end
+
+    local v435 = false
+
+    if t2[33] then
+        v435 = v435 or pcall(function()
+            t2[33]:FireServer(v434)
+        end)
+    end
+
+    if v435 then
+        task.wait(0.25)
+        pcall(function()
+            t2[26]:FireServer()
+        end)
+    end
+
+    return v435
+end
+t6[73] = function(p68)
+    if not t2[32] or not p68 then
+        return false
+    end
+
+    local v437 = t6[72](p68)
+
+    if not v437 then
+        return false
+    end
+
+    local ok = pcall(function()
+        t2[32]:FireServer(v437, t2[8].Name, 1)
+    end)
+
+    if ok then
+        pcall(function()
+            t2[26]:FireServer()
+        end)
+    end
+
+    return ok
+end
+t6[74] = t1[53]
+t6[75] = t1[54]
+t6[76] = t1[55]
+t6[77] = t1[56]
+t1[59] = function(p69, p70, p71)
+    local autoBuyCrates = t6[3].autoBuyCrates
+    local autoOpenCrates = t6[3].autoOpenCrates
+
+    if p70 ~= nil then
+        autoBuyCrates = p70
+    end
+
+    if p71 ~= nil then
+        autoOpenCrates = p71
+    end
+
+    local v444 = not p69
+
+    if v444 then
+        v444 = not autoBuyCrates and not autoOpenCrates
+    end
+
+    if v444 or t6[64] then
+        return
+    end
+
+    local v445 = t6[71]()
+
+    for _, v in ipairs(v445) do
+        local v448 = not p69
+
+        if v448 then
+            v448 = not t6[3].autoBuyCrates
+
+            if v448 then
+                v448 = not t6[3].autoOpenCrates
+            end
+        end
+
+        if v448 then
+            return
+        end
+
+        if autoBuyCrates then
+            t6[73](v)
+            task.wait(0.85)
+        end
+
+        if autoOpenCrates then
+            t6[74](v)
+            task.wait(0.35)
+        end
+    end
+end
+t6[78] = t1[57]
+t6[79] = t1[58]
+t1[60] = function(p72, p73, p74)
+    local n10 = 0
+
+    while (function()
+        if p73 == "dig" then
+            local v655 = t2[2].TouchEnabled and 2
+            local active = t2[10].active
+
+            if active then
+                active = t2[9].THS_RUNTIME == t2[10]
+            end
+
+            local v657 = v655 or 4
+
+            if active then
+                active = t6[3].autodig
+
+                if active then
+                    active = p74 == t6[58]
+
+                    if active then
+                        active = p72.Parent and v657 > n10
+                    end
+                end
+            end
+
+            return active
+        end
+
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if active then
+            active = t6[3].farm
+
+            if active then
+                active = p74 == t6[10]
+
+                if active then
+                    active = p72.Parent
+
+                    if active then
+                        active = p72:FindFirstChild("Chest")
+                    end
+                end
+            end
+        end
+
+        return active
+    end)() do
+        if t6[59] or t6[62] then
+            task.wait(0.2)
+
+            break
+        end
+
+        local v453 = t6[13]()
+
+        if not v453 then
+            break
+        end
+
+        local v454 = t6[14]()
+        local Tool = v453:FindFirstChildOfClass("Tool")
+
+        if not Tool then
+            v20()
+            task.wait(0.5)
+
+            return
+        end
+
+        local RemoteClick = Tool:FindFirstChild("RemoteClick")
+
+        if v454 and RemoteClick then
+            pcall(function()
+                local v659 = t6[28](p72)
+                local v660 = v659
+
+                if v659 then
+                    v660 = p73 ~= "dig"
+                end
+
+                if v660 then
+                    v454.CFrame = v659
+                end
+
+                RemoteClick:FireServer(p72)
+                n10 += 1
+                v21()
+            end)
+        end
+
+        if p73 == "dig" then
+            local v457 = not t2[2].TouchEnabled and 0.1 or 0.18
+
+            task.wait((math.clamp(tonumber(t6[3].digClickDelay) or 0.16, v457, 0.45)))
+        else
+            t2[4].Heartbeat:Wait()
+        end
+    end
+end
+t6[80] = t1[59]
+task.spawn(function()
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active then
+            break
+        end
+
+        task.wait((math.max(2, tonumber(t6[3].crateDelay) or 5)))
+
+        local active5 = t2[10].active
+
+        if active5 then
+            active5 = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active5 then
+            return
+        end
+
+        local autoBuyCrates = t6[3].autoBuyCrates
+
+        if not autoBuyCrates then
+            autoBuyCrates = t6[3].autoOpenCrates
+        end
+
+        if autoBuyCrates then
+            t6[80](false)
+        end
+    end
+end)
+t6[81] = {}
+t1[62] = function()
+    local v461 = t6[46].getProgressValue({
+		"TotalSand",
+		"SandDug",
+		"TotalSandDug",
+		"BlocksDug",
+		"TotalBlocks",
+		"TotalDug"
+	})
+    local v462 = t6[46].getProgressValue({
+		"Rebirths",
+		"Rebirth",
+		"TotalRebirths"
+	})
+    local n11 = -1e999
+    local v464
+    for v467, v468 in ipairs(t6[11]) do
+
+        if t6[46].isAreaUnlocked(v468, v461, v462) and n11 < (v468.value or 0) then
+            v464 = v468
+            n11 = v468.value or 0
+        end
+    end
+    if v464 then
+        t6[3].digArea = v464.name
+    end
+
+    return v464
+end
+t6[82] = 0
+t6[83] = function()
+    if time() - t6[82] < 0.25 then
+        return table.clone(t6[81])
+    end
+
+    local SandBlocks = t2[3]:FindFirstChild("SandBlocks")
+
+    if not SandBlocks then
+        return {}
+    end
+
+    local t27 = {}
+    local GetChildren = SandBlocks.GetChildren
+
+    for _, v in ipairs(GetChildren(SandBlocks)) do
+        if v:FindFirstChild("Chest") then
+            local v474
+            local Mat = v:FindFirstChild("Mat")
+            if Mat and Mat:IsA("StringValue") then
+                v474 = Mat.Value:match("^%s*(.-)%s*$")
+            end
+            if not v474 then
+                for _, child in ipairs(v:GetChildren()) do
+                    local v478 = child.Name ~= "Chest"
+
+                    if v478 then
+                        v478 = child.Name:find("Chest")
+                    end
+
+                    if v478 then
+                        v474 = child.Name
+
+                        break
+                    end
+                end
+            end
+            if v474 and t6[5][v474] then
+                table.insert(t27, v)
+            end
+        end
+    end
+
+    time()
+
+    return table.clone(t27)
+end
+t6[84] = t1[62]
+t6[85] = nil
+t6[86] = nil
+t6[87] = nil
+t1[63] = function(p75)
+    local v480 = p75 == t6[85]
+
+    if v480 then
+        v480 = t6[86] and t6[87]
+    end
+
+    if v480 then
+        return t6[86], t6[87]
+    end
+
+    t6[86] = RaycastParams.new()
+    t6[86].FilterDescendantsInstances = { p75 }
+
+    if not pcall(function()
+        t6[86].FilterType = Enum.RaycastFilterType.Include
+    end) then
+        t6[86].FilterType = Enum.RaycastFilterType.Whitelist
+    end
+
+    t6[86].IgnoreWater = true
+    t6[87] = OverlapParams.new()
+    t6[87].FilterDescendantsInstances = { p75 }
+
+    if not pcall(function()
+        t6[87].FilterType = Enum.RaycastFilterType.Include
+    end) then
+        t6[87].FilterType = Enum.RaycastFilterType.Whitelist
+    end
+
+    t6[87].MaxParts = 30
+
+    return t6[86], t6[87]
+end
+t6[88] = nil
+t1[64] = function()
+    local SandBlocks = t2[3]:FindFirstChild("SandBlocks")
+    local v482 = t6[14]()
+    if not SandBlocks or not v482 then
+        return nil
+    end
+    local Position = v482.Position
+    local v484, v485 = t6[88](SandBlocks)
+    local function v486(p76)
+        while p76 and p76.Parent ~= SandBlocks do
+            p76 = p76.Parent
+        end
+
+        return p76 and (p76.Parent == SandBlocks and p76) or nil
+    end
+    local raycastResult = t2[3]:Raycast(Position + Vector3.new(0, 2, 0), Vector3.new(0, -90, 0), v484)
+    if raycastResult and raycastResult.Instance then
+        local v488 = v486(raycastResult.Instance)
+
+        if v488 then
+            return v488
+        end
+    end
+    local n12 = 1e999
+    local v490
+    local n13 = -1e999
+    local PartBoundsInBox = t2[3]:GetPartBoundsInBox(CFrame.new(Position + Vector3.new(0, -42, 0)), Vector3.new(10, 90, 10), v485)
+    local t28 = {}
+    for _, v in ipairs(PartBoundsInBox) do
+        local v496 = v486(v)
+
+        if v496 and not t28[v496] then
+            t28[v496] = true
+
+            local v497 = t6[28](v496)
+
+            if v497 then
+                local Magnitude = (Vector3.new(v497.Position.X, 0, v497.Position.Z) - Vector3.new(Position.X, 0, Position.Z)).Magnitude
+                local v499 = Magnitude <= 4.5
+
+                if v499 then
+                    v499 = v497.Position.Y <= Position.Y + 3
+                end
+
+                if v499 then
+                    local v500 = n13 < v497.Position.Y
+
+                    if not v500 then
+                        v500 = n13 == v497.Position.Y and Magnitude < n12
+                    end
+
+                    if v500 then
+                        v490 = v496
+                        n12 = Magnitude
+                        n13 = v497.Position.Y
+                    end
+                end
+            end
+        end
+    end
+
+    return v490
+end
+t6[88] = t1[63]
+t6[89] = t1[64]
+t6[10] = 0
+t6[58] = 0
+t1[65] = function()
+    local v501 = t6[14]()
+    if not v501 then
+        return
+    end
+    local v502 = t6[83]()
+    local v503
+    local huge = math.huge
+    for v507, v508 in ipairs(v502) do
+
+        local v509 = v508:IsA("BasePart") and v508.CFrame or v508:GetPivot()
+        local Magnitude = (v501.Position - v509.Position).Magnitude
+
+        if Magnitude < huge then
+            v503 = v508
+            huge = Magnitude
+        end
+    end
+    if v503 then
+        v501.CFrame = (v503:IsA("BasePart") and v503.CFrame or v503:GetPivot()) + Vector3.new(0, 4, 0)
+    end
+end
+t6[90] = nil
+t1[66] = function(p77)
+    local n14 = 0
+    local name
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if active then
+            active = t6[3].autodig and p77 == t6[58]
+        end
+
+        if not active then
+            break
+        end
+
+        pcall(function()
+            if not t6[13]() then
+                task.wait(0.3)
+
+                return
+            end
+            local v662
+            if t6[3].autoBestArea and time() - n14 > 25 then
+                n14 = time()
+                v662 = t6[84]()
+            end
+            if not v662 then
+                v662 = t6[29](t6[3].digArea)
+            end
+            local digAutoTravel = t6[3].digAutoTravel
+            if digAutoTravel then
+                digAutoTravel = v662
+
+                if v662 then
+                    digAutoTravel = name ~= v662.name
+                end
+            end
+            if digAutoTravel then
+                name = v662.name
+                t6[27](v662.x, v662.y + 4, v662.z)
+                task.wait(0.25)
+            end
+            if not v20() then
+                task.wait(0.5)
+
+                return
+            end
+            local v664 = t6[89]()
+            if v664 then
+                t6[90](v664, "dig", p77)
+
+                return
+            end
+            task.wait(0.35)
+        end)
+
+        local v515 = not t2[2].TouchEnabled and 0.1 or 0.18
+
+        task.wait((math.clamp(tonumber(t6[3].digClickDelay) or 0.16, v515, 0.45)))
+    end
+end
+t6[90] = t1[60]
+local function v23(p78)
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if active then
+            active = t6[3].farm and p78 == t6[10]
+        end
+
+        if not active then
+            break
+        end
+
+        pcall(function()
+            if not t6[13]() then
+                task.wait(0.3)
+
+                return
+            end
+
+            if not t6[13]():FindFirstChildOfClass("Tool") then
+                v20()
+                task.wait(0.5)
+
+                return
+            end
+
+            local v665 = t6[83]()
+
+            if #v665 == 0 then
+                task.wait(0.2)
+
+                return
+            end
+
+            for _, v in ipairs(v665) do
+                if not t6[3].farm or p78 ~= t6[10] then
+                    return
+                end
+
+                t6[90](v, "farm", p78)
+            end
+        end)
+        task.wait(0.05)
+    end
+end
+t6[91] = function()
+    t6[10] = t6[10] + 1
+
+    local v518 = t6[10]
+
+    task.spawn(function()
+        v23(v518)
+    end)
+end
+t6[92] = nil
+t1[68] = function()
+    t6[58] = t6[58] + 1
+
+    local v519 = t6[58]
+
+    task.spawn(function()
+        t6[92](v519)
+    end)
+end
+t6[92] = t1[66]
+t6[93] = t1[68]
+t6[94] = t1[65]
+task.spawn(function()
+    local n15 = 0
+
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active then
+            break
+        end
+
+        task.wait(2)
+
+        local active6 = t2[10].active
+
+        if active6 then
+            active6 = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active6 then
+            break
+        end
+
+        if t6[3].rebirth and time() - n15 > 10 then
+            pcall(function()
+                local RebirthRequirement = t2[1]:FindFirstChild("RebirthRequirement")
+
+                if (RebirthRequirement and RebirthRequirement.Value or 1000000) <= t6[15]() then
+                    t2[24]:FireServer()
+                    n15 = time()
+                    task.wait(1)
+
+                    local v669 = t6[13]()
+
+                    if v669 then
+                        local Humanoid = v669:FindFirstChildOfClass("Humanoid")
+                        local Backpack = t2[8]:FindFirstChild("Backpack")
+
+                        if Humanoid and Backpack then
+                            local children = Backpack:GetChildren()
+
+                            if #children > 0 then
+                                pcall(function()
+                                    Humanoid:EquipTool(children[#children])
+                                end)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+task.spawn(function()
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active then
+            break
+        end
+
+        task.wait(30)
+
+        local active7 = t2[10].active
+
+        if active7 then
+            active7 = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active7 then
+            return
+        end
+
+        if t6[3].antiafk then
+            pcall(function()
+                t2[5]:CaptureController()
+                t2[5]:ClickButton2(Vector2.new())
+            end)
+        end
+    end
+end)
+t1[71] = t2[7].Ambient
+t1[69] = t2[7].Brightness
+t1[72] = t2[7].ClockTime
+t1[74] = t2[7].FogEnd
+t1[76] = t2[7].GlobalShadows
+t6[95] = {
+	Ambient = t1[71],
+	Brightness = t1[69],
+	ClockTime = t1[72],
+	FogEnd = t1[74],
+	GlobalShadows = t1[76]
+}
+t1[69] = t2[3]:FindFirstChildOfClass("Terrain")
+t1[65] = t1[69]
+if not t1[69] then
+    t1[65] = t2[3]:FindFirstChild("Terrain")
+end
+t6[96] = t1[65]
+t6[97] = false
+t6[98] = nil
+if t6[96] then
+    t1[73] = function()
+        return t6[96].Decoration
+    end
+
+    local ok, result = pcall(t1[73])
+
+    t1[70] = ok
+    t1[72] = result
+    t6[97] = t1[70]
+    t6[98] = t1[72]
+end
+t1[75] = {}
+t6[99] = setmetatable(t1[75], {
+	__mode = "k"
+})
+t6[100] = false
+t6[101] = nil
+t6[102] = function(p79)
+    local v527 = p79:IsA("ParticleEmitter")
+
+    if not v527 then
+        v527 = p79:IsA("Trail")
+
+        if not v527 then
+            v527 = p79:IsA("Beam")
+
+            if not v527 then
+                v527 = p79:IsA("Smoke")
+
+                if not v527 then
+                    v527 = p79:IsA("Fire") or p79:IsA("Sparkles")
+                end
+            end
+        end
+    end
+
+    if v527 then
+        if t6[99][p79] == nil then
+            t6[99][p79] = p79.Enabled
+        end
+
+        p79.Enabled = false
+
+        return
+    end
+
+    if p79:IsA("BasePart") then
+        if t6[99][p79] == nil then
+            t6[99][p79] = p79.CastShadow
+        end
+
+        p79.CastShadow = false
+    end
+end
+t1[78] = function()
+    if t6[100] then
+        return
+    end
+
+    t6[100] = true
+    t2[7].Ambient = Color3.fromRGB(90, 90, 90)
+    t2[7].Brightness = math.max(1, t6[95].Brightness)
+    t2[7].ClockTime = t6[95].ClockTime
+    t2[7].FogEnd = math.max(750, t6[95].FogEnd)
+    t2[7].GlobalShadows = false
+
+    if not (not t6[97] or not t6[96]) then
+        local v528 = false
+
+        if pcall(function()
+            t6[96].Decoration = v528
+        end) then
+        end
+    end
+
+    for _, descendant in ipairs(t2[3]:GetDescendants()) do
+        pcall(t6[102], descendant)
+    end
+
+    t6[101] = t2[3].DescendantAdded:Connect(function(descendant)
+        if t6[100] then
+            pcall(t6[102], descendant)
+        end
+    end)
+end
+t1[83] = {}
+t6[103] = t1[78]
+t6[104] = function()
+    if t6[101] then
+        t6[101]:Disconnect()
+    end
+
+    if not t6[100] then
+        return
+    end
+
+    t2[7].Ambient = t6[95].Ambient
+    t2[7].Brightness = t6[95].Brightness
+    t2[7].ClockTime = t6[95].ClockTime
+    t2[7].FogEnd = t6[95].FogEnd
+    t2[7].GlobalShadows = t6[95].GlobalShadows
+
+    local v531 = t6[98]
+
+    if not (not t6[97] or not t6[96]) then
+        if pcall(function()
+            t6[96].Decoration = v531
+        end) then
+        end
+    end
+
+    for k, v in pairs(t6[99]) do
+        local v534 = k
+        local v535 = v
+
+        if v534.Parent then
+            pcall(function()
+                if v534:IsA("BasePart") then
+                    v534.CastShadow = v535
+
+                    return
+                end
+
+                v534.Enabled = v535
+            end)
+        end
+
+        t6[99][v534] = nil
+    end
+end
+task.spawn(function()
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active then
+            break
+        end
+
+        if t6[3].disable3d then
+            t6[103]()
+        else
+            t6[104]()
+        end
+
+        task.wait(0.5)
+    end
+end)
+t2[12](t6[104])
+t6[105] = 16
+t6[106] = nil
+t6[107] = nil
+t1[84] = function()
+    if t6[106] then
+        t6[106]:Destroy()
+        t6[106] = nil
+    end
+
+    if t6[107] then
+        t6[107]:Destroy()
+        t6[107] = nil
+    end
+end
+t6[107] = nil
+t6[108] = function()
+    local v537 = t6[13]()
+
+    if v537 then
+        v537 = v537:FindFirstChildOfClass("Humanoid")
+    end
+
+    return v537
+end
+t6[109] = t1[84]
+t6[110] = function()
+    local v538 = t6[14]()
+
+    if not v538 then
+        return nil, nil
+    end
+
+    local v539 = not t6[106]
+
+    if not v539 then
+        v539 = v538 ~= t6[106].Parent
+    end
+
+    if v539 then
+        t6[109]()
+        t6[106] = Instance.new("BodyGyro")
+        t6[106].Name = "TH_FlyGyro"
+        t6[106].MaxTorque = Vector3.new(9000000000, 9000000000, 9000000000)
+        t6[106].P = 9000
+        t6[106].CFrame = v538.CFrame
+        t6[106].Parent = v538
+        t6[107] = Instance.new("BodyVelocity")
+        t6[107].Name = "TH_FlyVelocity"
+        t6[107].MaxForce = Vector3.new(9000000000, 9000000000, 9000000000)
+        t6[107].Velocity = Vector3.new()
+        t6[107].Parent = v538
+    end
+
+    return t6[106], t6[107]
+end
+t6[111] = setmetatable(t1[83], {
+	__mode = "k"
+})
+t6[112] = nil
+t1[87] = function()
+    if not t6[112] then
+        return
+    end
+
+    t6[112] = false
+
+    for k, v in pairs(t6[111]) do
+        local v542 = k
+
+        if v542.Parent then
+            v542.CanCollide = v
+        end
+
+        t6[111][v542] = nil
+    end
+end
+t6[112] = false
+t6[113] = t1[87]
+task.spawn(function()
+    while true do
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if not active then
+            break
+        end
+
+        local v544 = t6[108]()
+        local speed = t6[3].speed
+
+        if speed then
+            speed = t6[3].walkSpeed
+        end
+
+        local v546 = speed or t6[105]
+
+        if v544 and v546 ~= v544.WalkSpeed then
+            v544.WalkSpeed = v546
+        end
+
+        if t6[3].noclip then
+            local v547 = t6[13]()
+
+            if v547 then
+                for _, descendant in ipairs(v547:GetDescendants()) do
+                    if descendant:IsA("BasePart") then
+                        if t6[111][descendant] == nil then
+                            t6[111][descendant] = descendant.CanCollide
+                        end
+
+                        if descendant.CanCollide then
+                            descendant.CanCollide = false
+                        end
+                    end
+                end
+            end
+        else
+            t6[113]()
+        end
+
+        task.wait(0.15)
+    end
+end)
+t2[11](t2[4].Heartbeat:Connect(function()
+    local active = t2[10].active
+
+    if active then
+        active = t2[9].THS_RUNTIME == t2[10]
+    end
+
+    if not active then
+        return
+    end
+
+    if not t6[3].fly then
+        t6[109]()
+
+        return
+    end
+
+    local v551 = not t6[14]()
+    local CurrentCamera = t2[3].CurrentCamera
+    local v553, v554 = t6[110]()
+
+    if not v551 then
+        v551 = not CurrentCamera
+
+        if not v551 then
+            v551 = not v553 or not v554
+        end
+    end
+
+    if v551 then
+        return
+    end
+
+    local vector3 = Vector3.new()
+
+    if t2[2]:IsKeyDown(Enum.KeyCode.W) then
+        vector3 += CurrentCamera.CFrame.LookVector
+    end
+
+    if t2[2]:IsKeyDown(Enum.KeyCode.S) then
+        vector3 -= CurrentCamera.CFrame.LookVector
+    end
+
+    if t2[2]:IsKeyDown(Enum.KeyCode.A) then
+        vector3 -= CurrentCamera.CFrame.RightVector
+    end
+
+    if t2[2]:IsKeyDown(Enum.KeyCode.D) then
+        vector3 += CurrentCamera.CFrame.RightVector
+    end
+
+    if t2[2]:IsKeyDown(Enum.KeyCode.Space) then
+        vector3 += Vector3.new(0, 1, 0)
+    end
+
+    local v556 = t2[2]:IsKeyDown(Enum.KeyCode.LeftControl)
+
+    if not v556 then
+        v556 = t2[2]:IsKeyDown(Enum.KeyCode.RightControl)
+    end
+
+    if v556 then
+        vector3 -= Vector3.new(0, 1, 0)
+    end
+
+    v553.CFrame = CurrentCamera.CFrame
+
+    local v557 = vector3.Magnitude > 0
+
+    if v557 then
+        v557 = vector3.Unit * t6[3].flySpeed
+    end
+
+    if not v557 then
+        v557 = Vector3.new()
+    end
+
+    v554.Velocity = v557
+end))
+t2[11](t2[2].JumpRequest:Connect(function()
+    local active = t2[10].active
+
+    if active then
+        active = t2[9].THS_RUNTIME == t2[10]
+    end
+
+    if not active then
+        return
+    end
+
+    if not t6[3].infjump then
+        return
+    end
+
+    local v559 = t6[108]()
+
+    if v559 then
+        v559:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end))
+t1[85] = function()
+    t6[113]()
+    t6[109]()
+
+    local v560 = t6[108]()
+
+    if v560 then
+        v560.WalkSpeed = t6[105]
+    end
+end
+t2[12](t1[85])
+t1[87] = function()
+    local t29 = {}
+    local t30 = {}
+    local v563 = t2[16]
+    local v564 = not v563
+    if not v564 then
+        v564 = type(v563.new) ~= "function"
+    end
+    if v564 then
+        t2[10].unload()
+        error("Venyx library is unavailable.")
+    end
+    local v565 = t2[18](t2[8], "PlayerGui"):FindFirstChild(t2[14])
+    if v565 then
+        v565:Destroy()
+    end
+    local ok, result = pcall(v563.new, t2[14])
+    t30[1] = result
+    t29[2] = not ok
+    local v568 = t29[2]
+    if not t29[2] then
+        t29[1] = type(t30[1]) ~= "table"
+        t29[2] = t29[1]
+
+        if not t29[1] then
+            t29[2] = not t30[1].container
+        end
+
+        v568 = t29[2]
+    end
+    if v568 then
+        t2[10].unload()
+        error("Venyx control panel could not be created.")
+    end
+    t30[1].container.Enabled = true
+    local Main = t30[1].container:FindFirstChild("Main")
+    if Main then
+        Main = t30[1].container.Main:FindFirstChild("TopBar")
+    end
+    t29[2] = Main
+    if t29[2] and t29[2]:FindFirstChild("Title") then
+        t29[2].Title.Text = t2[14]
+    end
+    t30[1].container.ResetOnSpawn = false
+    t30[2] = {
+		toggles = {},
+		numbers = {},
+		dropdowns = {},
+		inputs = {},
+		keybinds = {}
+	}
+    t2[20](t30[1])
+    local function v570(p80, p81)
+        pcall(function()
+            t30[1]:Notify(p80, p81)
+        end)
+    end
+    local function v571(p82, p83, p84, p85, p86)
+        local u681 = p85 == true
+        local u682
+        local u683
+        function u682(p87)
+            local v815 = not u683
+
+            if not v815 then
+                v815 = not u683.Parent
+            end
+
+            if v815 then
+                return
+            end
+
+            local Frame = u683.Button.Frame
+
+            Frame.Size = UDim2.new(1, -22, 1, -4)
+
+            if p87 then
+                p87 = UDim2.new(0, 20, 0.5, -6)
+            end
+
+            if not p87 then
+                p87 = UDim2.new(0, 2, 0.5, -6)
+            end
+
+            Frame.Position = p87
+        end
+        local t31 = {}
+        u683 = p82:addToggle(p84, u681, function()
+            u681 = not u681
+            u682(u681)
+            p86(u681)
+        end)
+        function t31.Set(p88, p89)
+            local v819 = p88 == true
+            local v820 = v819 ~= u681
+
+            u681 = v819
+            u682(u681)
+
+            if v820 and p89 then
+                p86(u681)
+            end
+        end
+        function t31.Get()
+            return u681
+        end
+        t31.Module = u683
+        t30[2].toggles[p83] = t31
+
+        return t31
+    end
+    local function v572(p90, p91, p92, p93, p94, p95, p96)
+        local u692 = math.clamp(tonumber(p93) or p94, p94, p95)
+        local u693
+        u693 = p90:addTextbox(p92, tostring(u692), function(p97, p98)
+            if not p98 then
+                return
+            end
+
+            local v823 = math.clamp(math.floor((tonumber(p97) or u692) + 0.5), p94, p95)
+
+            u692 = v823
+            p90:updateTextbox(u693, nil, tostring(v823))
+            p96(v823)
+        end)
+        local t32 = {
+			Set = function(p99, p100)
+            local v826 = math.floor(math.clamp(tonumber(p99) or u692, p94, p95) + 0.5)
+            local v827 = v826 ~= u692
+
+            p90:updateTextbox(u693, nil, (tostring(v826)))
+
+            if v827 and p100 then
+                p96(v826)
+            end
+        end,
+			Module = u693
+		}
+        t30[2].numbers[p91] = t32
+
+        return t32
+    end
+    local function v573(p101, p102, p103, p104, p105, p106)
+        local _tostring = tostring
+        if not p104 then
+            p104 = ""
+        end
+        local u711 = _tostring(p104)
+        local u712 = p105()
+        local u713
+        local function v714(p107)
+            u711 = tostring(p107)
+            p106(u711)
+            task.defer(function()
+                local v847 = u713
+
+                if v847 then
+                    v847 = u713.Parent
+                end
+
+                if v847 then
+                    u713.Search.TextBox.Text = p103 .. ": " .. u711
+                end
+            end)
+        end
+        u713 = p101:addDropdown(p103 .. ": " .. u711, u712, v714)
+        local t33 = {
+			Set = function(p108, p109)
+            local _tostring2 = tostring
+
+            if not p108 then
+                p108 = ""
+            end
+
+            local v840 = _tostring2(p108)
+            local v841 = v840 ~= u711
+
+            u711 = v840
+            u713.Search.TextBox.Text = p103 .. ": " .. u711
+
+            if v841 and p109 then
+                p106(u711)
+            end
+        end,
+			Refresh = function()
+            u712 = p105()
+            p101:updateDropdown(u713, p103 .. ": " .. u711, u712, v714)
+        end,
+			Module = u713
+		}
+        t30[2].dropdowns[p102] = t33
+
+        return t33
+    end
+    local v574 = t30[1]:addPage("Farm", t2[17].Farm)
+    local v575 = t30[1]:addPage("Chests", t2[17].Chests)
+    local v576 = t30[1]:addPage("Crates", t2[17].Crates)
+    local v577 = t30[1]:addPage("Cosmetics", t2[17].Cosmetics)
+    local v578 = t30[1]:addPage("Movement", t2[17].Movement)
+    local v579 = t30[1]:addPage("Teleport", t2[17].Teleport)
+    local v580 = t30[1]:addPage("Settings", t2[17].Settings)
+    local v581 = t30[1]:addPage("Keybinds", t2[17].Keybinds)
+    local v582 = v574:addSection("Automation")
+    v571(v582, "farm", "Auto Farm", t6[3].farm, function(p110)
+        t6[3].farm = p110
+
+        if p110 then
+            t6[3].autodig = false
+            t30[2].toggles.autodig.Set(false)
+            t6[91]()
+        end
+    end)
+    v571(v582, "autodig", "Auto Dig", t6[3].autodig, function(p111)
+        t6[3].autodig = p111
+
+        if p111 then
+            t6[3].farm = false
+            t6[3].esp = false
+            t30[2].toggles.farm.Set(false)
+
+            if t30[2].toggles.esp then
+                t30[2].toggles.esp.Set(false)
+            end
+
+            t6[93]()
+        end
+    end)
+    v571(v582, "rebirth", "Auto Rebirth", t6[3].rebirth, function(p112)
+        t6[3].rebirth = p112
+    end)
+    v571(v582, "autosell", "Auto Sell - Best Area", t6[3].autosell, function(p113)
+        t6[3].autosell = p113
+
+        if t2[31] then
+            pcall(function()
+                t2[31]:FireServer(false)
+            end)
+        end
+    end)
+    v571(v582, "autoupgrade", "Auto Upgrade", t6[3].autoupgrade, function(p114)
+        t6[3].autoupgrade = p114
+    end)
+    v571(v582, "antiafk", "Anti AFK", t6[3].antiafk, function(p115)
+        t6[3].antiafk = p115
+    end)
+    v571(v582, "disable3d", "Performance Mode", t6[3].disable3d, function(p116)
+        t6[3].disable3d = p116
+    end)
+    local v583 = v574:addSection("Dig Settings")
+    v573(v583, "digArea", "Dig Area", t6[3].digArea, function()
+        local t34 = { "All" }
+
+        for _, v in ipairs(t6[11]) do
+            table.insert(t34, v.name)
+        end
+
+        return t34
+    end, function(p117)
+        t6[3].digArea = p117
+    end)
+    v571(v583, "autoBestArea", "Auto Best Area", t6[3].autoBestArea, function(p118)
+        t6[3].autoBestArea = p118
+
+        if p118 then
+            local v728 = t6[84]()
+
+            if v728 then
+                t30[2].dropdowns.digArea.Set(v728.name)
+            end
+        end
+    end)
+    v571(v583, "digAutoTravel", "Auto Travel To Area", t6[3].digAutoTravel, function(p119)
+        t6[3].digAutoTravel = p119
+    end)
+    v573(v583, "preferredTool", "Mining Tool", t6[3].preferredTool, t6[55], function(p120)
+        t6[3].preferredTool = p120
+    end)
+    v572(v583, "digRadius", "Area Scan Radius", t6[3].digRadius, 80, 650, function(p121)
+        t6[3].digRadius = p121
+    end)
+    v572(v583, "digDelay", "Dig Delay x100", math.floor((t6[3].digClickDelay or 0.16) * 100), 10, 45, function(p122)
+        t6[3].digClickDelay = p122 / 100
+    end)
+    v572(v583, "sellAfterBlocks", "Sell After Blocks", t6[3].sellAfterBlocks, 0, 50000, function(p123)
+        t6[3].sellAfterBlocks = p123
+    end)
+    v572(v583, "sellEverySeconds", "Sell Timer Seconds", t6[3].sellEverySeconds, 0, 600, function(p124)
+        t6[3].sellEverySeconds = p124
+    end)
+    local v584 = v574:addSection("Actions")
+    v584:addButton("Sell Now", function()
+        task.spawn(function()
+            t6[61](true)
+        end)
+    end)
+    v584:addButton("Buy Best Upgrades", function()
+        task.spawn(function()
+            v22(true)
+        end)
+    end)
+    v584:addButton("Equip Best Owned Tool", t6[44])
+    v584:addButton("Equip Selected Tool", v20)
+    v584:addButton("Refresh Mining Tools", function()
+        t30[2].dropdowns.preferredTool.Refresh()
+    end)
+    v584:addButton("Go To Dig Area", function()
+        local v735 = t6[29](t6[3].digArea)
+
+        if v735 then
+            t6[27](v735.x, v735.y + 4, v735.z)
+        end
+    end)
+    local v585 = v575:addSection("Chest Selection")
+    local function v586(p125)
+
+        for v739, v740 in ipairs(t6[4]) do
+
+            t6[5][v740] = p125(v740)
+
+            local v741 = t30[2].toggles["chest_" .. v740]
+
+            if v741 then
+                v741.Set(t6[5][v740])
+            end
+        end
+    end
+    v585:addButton("Select All Chests", function()
+        v586(function()
+            return true
+        end)
+    end)
+    v585:addButton("Clear All Chests", function()
+        v586(function()
+            return false
+        end)
+    end)
+    v585:addButton("Valuable Chests Only", function()
+        local t35 = {
+			Rare = true,
+			Ruby = true,
+			Epic = true,
+			Mars = true,
+			Astronaut = true,
+			Atlantis = true,
+			Diamond = true,
+			Legendary = true,
+			Hell = true,
+			VIP = true,
+			Crystal = true,
+			Emerald = true,
+			Sapphire = true,
+			Amethyst = true,
+			Lava = true,
+			Volcano = true,
+			Space = true
+		}
+        local u743 = t35
+        v586(function(p126)
+            for k in pairs(u743) do
+                if p126:find(k) then
+                    return true
+                end
+            end
+
+            return false
+        end)
+    end)
+    v571(v585, "esp", "Chest ESP", t6[3].esp, function(p127)
+        t6[3].esp = p127
+    end)
+    local v587 = v575:addSection("Chest Filters")
+    for _, v in ipairs(t6[4]) do
+        local v590 = t6[5][v]
+        local ModuleTitle = v571(v587, "chest_" .. v, v, v590, function(p128)
+            t6[5][v] = p128
+        end).Module.Title
+        local v592 = t6[9](v)
+
+        if not v592 then
+            v592 = Color3.fromRGB(235, 241, 246)
+        end
+
+        ModuleTitle.TextColor3 = v592
+    end
+    local v593 = v576:addSection("Crate Automation");
+    (function(p129, p130, p131, p132, p133)
+        local _tostring = tostring
+        if not p132 then
+            p132 = ""
+        end
+        local u701 = _tostring(p132)
+        local t36 = {}
+        local u702 = p129:addTextbox(p131, u701, function(p134, p135)
+            local _tostring3 = tostring
+
+            if not p134 then
+                p134 = ""
+            end
+
+            u701 = _tostring3(p134)
+
+            if p135 then
+                p133(u701)
+            end
+        end)
+        function t36.Set(p136, p137)
+            local _tostring4 = tostring
+
+            if not p136 then
+                p136 = ""
+            end
+
+            local v834 = _tostring4(p136)
+            local v835 = v834 ~= u701
+
+            p129:updateTextbox(u702, nil, v834)
+
+            if v835 and p137 then
+                p133(v834)
+            end
+        end
+        t36.Module = u702
+        t30[2].inputs[p130] = t36
+
+        return t36
+    end)(v593, "crateTarget", "Crate Target", t6[3].crateTarget, function(p138)
+        t6[3].crateTarget = p138
+    end)
+    v571(v593, "autoBuyCrates", "Auto Buy Crates", t6[3].autoBuyCrates, function(p139)
+        t6[3].autoBuyCrates = p139
+    end)
+    v571(v593, "autoOpenCrates", "Auto Open Crates", t6[3].autoOpenCrates, function(p140)
+        t6[3].autoOpenCrates = p140
+    end)
+    v572(v593, "crateDelay", "Crate Delay", t6[3].crateDelay, 2, 30, function(p141)
+        t6[3].crateDelay = p141
+    end)
+    local v594 = v576:addSection("Crate Actions")
+    v594:addButton("Buy Selected Once", function()
+        task.spawn(function()
+            t6[80](true, true, false)
+        end)
+    end)
+    v594:addButton("Open Selected Once", function()
+        task.spawn(function()
+            t6[80](true, false, true)
+        end)
+    end)
+    v594:addButton("Buy And Open Once", function()
+        task.spawn(function()
+            t6[80](true, true, true)
+        end)
+    end)
+    v594:addButton("Refresh Cosmetics", function()
+        if t2[34] then
+            pcall(function()
+                t2[34]:FireServer()
+            end)
+        end
+
+        if t2[35] then
+            pcall(function()
+                t2[35]:FireServer()
+            end)
+        end
+    end)
+    local v595 = v577:addSection("Equipped Cosmetics")
+    v595:addButton("Clear All Skins", t6[75])
+    v595:addButton("Unequip Backpack Skin", t6[76])
+    v595:addButton("Unequip Tool Skin", t6[77])
+    v595:addButton("Unequip Hat Slot 1", function()
+        t6[78]("Hat1")
+    end)
+    v595:addButton("Unequip Hat Slot 2", function()
+        t6[78]("Hat2")
+    end)
+    v595:addButton("Unequip Hat Slot 3", function()
+        t6[78]("Hat3")
+    end)
+    v595:addButton("Toggle Hats", t6[79])
+    local v596 = v578:addSection("Character")
+    v571(v596, "speed", "Custom WalkSpeed", t6[3].speed, function(p142)
+        t6[3].speed = p142
+    end)
+    v572(v596, "walkSpeed", "WalkSpeed Value", t6[3].walkSpeed, 16, 120, function(p143)
+        t6[3].walkSpeed = p143
+    end)
+    v571(v596, "noclip", "Noclip", t6[3].noclip, function(p144)
+        t6[3].noclip = p144
+    end)
+    v571(v596, "fly", "Fly", t6[3].fly, function(p145)
+        t6[3].fly = p145
+
+        if not p145 then
+            t6[109]()
+        end
+    end)
+    v572(v596, "flySpeed", "Fly Speed", t6[3].flySpeed, 20, 180, function(p146)
+        t6[3].flySpeed = p146
+    end)
+    v571(v596, "infjump", "Infinite Jump", t6[3].infjump, function(p147)
+        t6[3].infjump = p147
+    end)
+    t30[3] = nil
+    local function v597(p148)
+        t6[3].mobileMode = p148
+
+        local container = t30[1].container
+
+        if container then
+            container = t30[1].container:FindFirstChild("Main")
+        end
+
+        if not container then
+            return
+        end
+
+        local THS_MobileScale = container:FindFirstChild("THS_MobileScale")
+
+        if not THS_MobileScale then
+            THS_MobileScale = Instance.new("UIScale")
+        end
+
+        THS_MobileScale.Name = "THS_MobileScale"
+        THS_MobileScale.Parent = container
+
+        local CurrentCamera = t2[3].CurrentCamera
+        local v760 = CurrentCamera and CurrentCamera.ViewportSize
+
+        if not v760 then
+            v760 = Vector2.new(800, 600)
+        end
+
+        if p148 then
+            p148 = math.clamp(math.min((v760.X - 20) / 511, (v760.Y - 20) / 428), 0.58, 1)
+        end
+
+        THS_MobileScale.Scale = p148 or 1
+        container.AnchorPoint = Vector2.new(0.5, 0.5)
+        container.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+        if t30[3] then
+            t30[3].Visible = t2[2].TouchEnabled
+        end
+    end
+    v571(v596, "mobileMode", "Mobile Layout", t6[3].mobileMode, v597)
+    v596:addButton("Reset Movement", function()
+        t6[3].speed = false
+        t6[3].noclip = false
+        t6[3].fly = false
+        t6[3].infjump = false
+        t6[3].walkSpeed = 32
+        t6[3].flySpeed = 60
+        t6[109]()
+
+        local v761 = t6[108]()
+
+        if v761 then
+            v761.WalkSpeed = t6[105]
+        end
+
+        t30[2].toggles.speed.Set(false)
+        t30[2].toggles.noclip.Set(false)
+        t30[2].toggles.fly.Set(false)
+        t30[2].toggles.infjump.Set(false)
+        t30[2].numbers.walkSpeed.Set(t6[3].walkSpeed)
+        t30[2].numbers.flySpeed.Set(t6[3].flySpeed)
+    end)
+    local v598 = v579:addSection("Locations")
+    v598:addButton("Nearest Selected Chest", t6[94])
+    v598:addButton("Sell Area", function()
+        t6[27](t6[3].sellX, t6[3].sellY, t6[3].sellZ)
+    end)
+    v598:addButton("Upgrade Shop", function()
+        t6[27](t6[3].upgradeX, t6[3].upgradeY, t6[3].upgradeZ)
+    end)
+    for _, v in ipairs(t6[11]) do
+        v598:addButton(v.name, function()
+            t6[27](v.x, v.y, v.z)
+        end)
+    end
+    t30[4] = function()
+        for k, v in pairs(t30[2].toggles) do
+            local v764 = k
+
+            if t6[3][v764] ~= nil then
+                v.Set(t6[3][v764])
+            end
+        end
+
+        t30[2].numbers.walkSpeed.Set(t6[3].walkSpeed)
+        t30[2].numbers.flySpeed.Set(t6[3].flySpeed)
+        t30[2].numbers.crateDelay.Set(t6[3].crateDelay)
+        t30[2].numbers.digRadius.Set(t6[3].digRadius)
+        t30[2].numbers.digDelay.Set((math.floor((t6[3].digClickDelay or 0.16) * 100)))
+        t30[2].numbers.sellAfterBlocks.Set(t6[3].sellAfterBlocks)
+        t30[2].numbers.sellEverySeconds.Set(t6[3].sellEverySeconds)
+        t30[2].inputs.crateTarget.Set(t6[3].crateTarget)
+        t30[2].dropdowns.digArea.Set(t6[3].digArea)
+        t30[2].dropdowns.preferredTool.Set(t6[3].preferredTool)
+        v597(t6[3].mobileMode)
+    end
+    t30[5] = function()
+        t6[3].farm = false
+        t6[3].autodig = false
+        t6[3].rebirth = false
+        t6[3].autosell = false
+        t6[3].autoupgrade = false
+        t6[3].autoBuyCrates = false
+        t6[3].autoOpenCrates = false
+        t6[3].esp = false
+        t6[3].speed = false
+        t6[3].fly = false
+        t6[3].noclip = false
+        t6[3].infjump = false
+        t6[3].antiafk = false
+        t6[109]()
+
+        local v765 = t6[108]()
+
+        if v765 then
+            v765.WalkSpeed = t6[105]
+        end
+
+        t30[4]()
+    end
+    local function v601(p149)
+        if p149 == "Farm" then
+            t6[3].farm = true
+            t6[3].autodig = false
+            t6[3].autosell = true
+            t6[3].autoupgrade = true
+            t6[3].rebirth = true
+            t6[3].antiafk = true
+            t6[3].disable3d = false
+            t6[3].autoBestArea = false
+            t6[91]()
+        elseif p149 == "Dig" then
+            t6[3].farm = false
+            t6[3].autodig = true
+            t6[3].autosell = true
+            t6[3].autoupgrade = true
+            t6[3].rebirth = false
+            t6[3].antiafk = true
+            t6[3].autoBestArea = true
+            t6[3].digAutoTravel = false
+            t6[3].sellAfterBlocks = math.max(10000, tonumber(t6[3].sellAfterBlocks) or 0)
+
+            local v767 = t6[84]()
+
+            if v767 then
+                t6[3].digArea = v767.name
+            end
+
+            t6[93]()
+        elseif p149 == "Crates" then
+            t6[3].farm = false
+            t6[3].autodig = false
+            t6[3].autoBuyCrates = true
+            t6[3].autoOpenCrates = true
+        elseif p149 == "LowFPS" then
+            t6[3].disable3d = true
+            t6[3].esp = false
+            t6[3].fly = false
+            t6[3].noclip = false
+            t6[109]()
+        end
+
+        if t2[31] then
+            pcall(function()
+                t2[31]:FireServer(false)
+            end)
+        end
+
+        t30[4]()
+    end
+    t30[6] = v580:addSection("Live Status")
+    t30[7] = t30[6]:addButton("Coins: Loading")
+    t30[8] = t30[6]:addButton("Backpack: Loading")
+    t30[9] = t30[6]:addButton("Tool: Loading")
+    t30[10] = t30[6]:addButton("Mined: Loading")
+    task.spawn(function()
+        while true do
+            local active = t2[10].active
+
+            if active then
+                active = t2[9].THS_RUNTIME == t2[10]
+            end
+
+            if active then
+                active = t30[1].container
+
+                if active then
+                    active = t30[1].container.Parent
+                end
+            end
+
+            if not active then
+                break
+            end
+
+            local v769, v770 = t6[26]()
+            local v771 = t6[13]()
+
+            if v771 then
+                v771 = v771:FindFirstChildOfClass("Tool")
+            end
+
+            t30[6]:updateButton(t30[7], "Coins: " .. tostring(t6[15]()))
+
+            local v772 = t30[6]
+            local v773 = t30[8]
+
+            if v769 then
+                if v770 then
+                    v770 = tostring(v769) .. " / " .. tostring(v770)
+                end
+
+                v769 = v770
+            end
+
+            v772:updateButton(v773, "Backpack: " .. (v769 or "Not detected"))
+            t30[6]:updateButton(t30[9], "Tool: " .. (v771 and v771.Name or "None"))
+            t30[6]:updateButton(t30[10], "Mined: " .. tostring(t6[3].minedSinceSell or 0) .. " / " .. tostring(t6[3].sellAfterBlocks or 0))
+            task.wait(1)
+        end
+    end)
+    local v602 = v580:addSection("Presets")
+    v602:addButton("Farm Preset", function()
+        t6[3].farm = true
+        t6[3].autodig = false
+        t6[3].autosell = true
+        t6[3].autoupgrade = true
+        t6[3].rebirth = true
+        t6[3].antiafk = true
+        t6[3].disable3d = false
+        t6[3].autoBestArea = false
+        t6[91]()
+
+        if t2[31] then
+            pcall(function()
+                t2[31]:FireServer(false)
+            end)
+        end
+
+        t30[4]()
+    end)
+    v602:addButton("Dig Preset", function()
+        v601("Dig")
+    end)
+    v602:addButton("Crate Preset", function()
+        t6[3].farm = false
+        t6[3].autodig = false
+        t6[3].autoBuyCrates = true
+        t6[3].autoOpenCrates = true
+
+        if t2[31] then
+            pcall(function()
+                t2[31]:FireServer(false)
+            end)
+        end
+
+        t30[4]()
+    end)
+    v602:addButton("Low FPS Preset", function()
+        t6[3].disable3d = true
+        t6[3].esp = false
+        t6[3].fly = false
+        t6[3].noclip = false
+        t6[109]()
+
+        if t2[31] then
+            pcall(function()
+                t2[31]:FireServer(false)
+            end)
+        end
+
+        t30[4]()
+    end)
+    v602:addButton("Panic Stop", t30[5])
+    local v603 = v580:addSection("Configuration")
+    local function v604(p150)
+        local v778 = type(isfile) ~= "function"
+
+        if not v778 then
+            v778 = type(readfile) ~= "function"
+
+            if not v778 then
+                v778 = not isfile("TH_Config.json")
+            end
+        end
+
+        if v778 then
+            if not p150 then
+                local s2 = "Config"
+                local s3 = "No saved configuration was found."
+
+                pcall(function()
+                    t30[1]:Notify(s2, s3)
+                end)
+            end
+
+            return
+        end
+
+        local ok2, result2 = pcall(function()
+            local HttpService = game:GetService("HttpService")
+            local t37 = { readfile("TH_Config.json") }
+
+            return HttpService:JSONDecode(v3(t37))
+        end)
+        local v783 = not ok2
+
+        if not v783 then
+            v783 = type(result2) ~= "table"
+        end
+
+        if v783 then
+            if not p150 then
+                local s4 = "Config"
+                local s5 = "Configuration is invalid."
+
+                pcall(function()
+                    t30[1]:Notify(s4, s5)
+                end)
+            end
+
+            return
+        end
+
+        if result2.hotkeys then
+            for k, v in pairs(result2.hotkeys) do
+                local v788 = k
+
+                if t6[35](v) then
+                    result2.hotkeys[v788] = t6[1][v788] or ""
+                end
+            end
+        end
+
+        for k, v in pairs(result2) do
+            local v791 = k
+
+            if t6[3][v791] ~= nil then
+                t6[3][v791] = v
+            end
+        end
+
+        t6[32]()
+        t30[4]()
+
+        for k, v in pairs(t30[2].keybinds) do
+            v.Set(t6[3].hotkeys[k] or "")
+        end
+
+        if t6[3].farm then
+            t6[91]()
+        end
+
+        if t6[3].autodig then
+            t6[93]()
+        end
+
+        if not p150 then
+            local s6 = "Config"
+            local s7 = "Configuration loaded."
+
+            pcall(function()
+                t30[1]:Notify(s6, s7)
+            end)
+        end
+    end
+    v603:addButton("Save Config", function()
+        if type(writefile) ~= "function" then
+            local s8 = "Config"
+            local s9 = "File functions are unavailable."
+
+            pcall(function()
+                t30[1]:Notify(s8, s9)
+            end)
+
+            return
+        end
+
+        t6[32]()
+
+        local ok3 = pcall(function()
+            writefile("TH_Config.json", game:GetService("HttpService"):JSONEncode(t6[3]))
+        end)
+
+        v570("Config", not ok3 and "Configuration could not be saved." or "Configuration saved.")
+    end)
+    v603:addButton("Load Config", function()
+        v604(false)
+    end)
+    v603:addButton("Unload UI", function()
+        t30[5]()
+        t2[10].unload()
+    end)
+    local v605 = v580:addSection("Appearance")
+    v605:addColorPicker("Accent Color", Color3.fromRGB(198, 158, 65), function(p151)
+        t30[1]:setTheme("Accent", p151)
+    end)
+    v605:addColorPicker("Panel Color", Color3.fromRGB(12, 16, 22), function(p152)
+        t30[1]:setTheme("Background", p152)
+    end)
+    t30[11] = function(p153)
+        if p153 == "panic" then
+            t30[5]()
+
+            return
+        end
+
+        local v799 = t30[2].toggles[p153]
+
+        if v799 then
+            v799.Set(not v799.Get(), true)
+        end
+    end
+    t30[12] = v581:addSection("Toggle Keybinds")
+    for _, v in ipairs({
+		{
+			"Auto Farm",
+			"farm"
+		},
+		{
+			"Auto Dig",
+			"autodig"
+		},
+		{
+			"Auto Best Area",
+			"autoBestArea"
+		},
+		{
+			"Auto Rebirth",
+			"rebirth"
+		},
+		{
+			"Anti AFK",
+			"antiafk"
+		},
+		{
+			"Performance Mode",
+			"disable3d"
+		},
+		{
+			"Chest ESP",
+			"esp"
+		},
+		{
+			"Auto Sell",
+			"autosell"
+		},
+		{
+			"Auto Upgrade",
+			"autoupgrade"
+		},
+		{
+			"WalkSpeed",
+			"speed"
+		},
+		{
+			"Noclip",
+			"noclip"
+		},
+		{
+			"Fly",
+			"fly"
+		},
+		{
+			"Infinite Jump",
+			"infjump"
+		},
+		{
+			"Mobile Layout",
+			"mobileMode"
+		},
+		{
+			"Panic Stop",
+			"panic"
+		}
+	}) do
+        local v608 = v[1]
+        local v609 = v[2]
+        local v610 = t6[34](t6[3].hotkeys[v609])
+        local u611 = t30[12]:addKeybind(v608, v610, function()
+            t30[11](v609)
+        end, function(p154, p155)
+            if p154 then
+                local KeyCode = p154.KeyCode
+
+                if KeyCode then
+                    KeyCode = p154.KeyCode.Name
+                end
+
+                p154 = KeyCode
+            end
+
+            local v803 = p154 or ""
+
+            if v803 ~= "" and t6[35](v803) then
+                t6[3].hotkeys[v609] = ""
+                p155(nil, nil)
+
+                local v804 = v803 .. " cannot be assigned."
+                local s10 = "Keybind"
+
+                pcall(function()
+                    t30[1]:Notify(s10, v804)
+                end)
+
+                return
+            end
+
+            t6[3].hotkeys[v609] = v803
+        end)
+
+        u611.MouseButton1Click:Connect(function()
+            task.defer(function()
+                local Parent = u611.Parent
+
+                if Parent then
+                    Parent = u611.Button.Text.Text == "None"
+                end
+
+                if Parent then
+                    t6[3].hotkeys[v609] = ""
+                end
+            end)
+        end)
+
+        local t38 = {
+			Set = function(p156)
+            local _tostring = tostring
+
+            if not p156 then
+                p156 = ""
+            end
+
+            local v808 = _tostring(p156)
+            local v809 = t6[34](v808)
+
+            t30[12]:updateKeybind(u611, nil, v809)
+        end
+		}
+
+        t30[2].keybinds[v609] = t38
+    end
+    t30[3] = Instance.new("TextButton")
+    t30[3].Name = "THS_MobileToggle"
+    t30[3].Size = UDim2.fromOffset(54, 38)
+    t30[3].Position = UDim2.new(0, 12, 0.5, -19)
+    t30[3].BackgroundColor3 = Color3.fromRGB(198, 158, 65)
+    t30[3].TextColor3 = Color3.fromRGB(235, 241, 246)
+    t30[3].Text = "THS"
+    t30[3].Font = Enum.Font.GothamBold
+    t30[3].TextSize = 13
+    t30[3].Visible = t2[2].TouchEnabled
+    t30[3].Parent = t30[1].container
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 8)
+    UICorner.Parent = t30[3]
+    t30[3].MouseButton1Click:Connect(function()
+        t30[1]:toggle()
+    end)
+    t2[11](t2[2].InputBegan:Connect(function(input, gameProcessed)
+        local active = t2[10].active
+
+        if active then
+            active = t2[9].THS_RUNTIME == t2[10]
+        end
+
+        if active then
+            active = not gameProcessed
+
+            if active then
+                active = input.KeyCode == Enum.KeyCode.PageUp
+            end
+        end
+
+        if active then
+            t30[1]:toggle()
+        end
+    end))
+    t2[12](function()
+        local container = t30[1].container
+
+        if container then
+            container = t30[1].container.Parent
+        end
+
+        if container then
+            t30[1].container:Destroy()
+        end
+    end)
+    t2[21](t30[1].container)
+    v597(t6[3].mobileMode)
+    t30[1]:SelectPage(v574, true)
+    if t6[3].autoLoad then
+        v604(true)
+    end
+    pcall(function()
+        t2[6]:SetCore("SendNotification", {
+			Title = t2[14],
+			Text = "Venyx panel ready. Press PageUp to hide or show.",
+			Duration = 5
+		})
+    end)
+    print("[THS v4.0] Venyx UI build loaded.")
+end
+local ok, result = pcall(t1[87])
+t1[88] = ok
+t6[114] = result
+if not t1[88] then
+    t1[86] = function()
+        local v614 = t2[6]
+        local v615 = t2[14]
+        local v616 = "UI build failed: " .. tostring(t6[114])
+
+        v614:SetCore("SendNotification", {
+			Title = v615,
+			Text = v616,
+			Duration = 8
+		})
+    end
+    pcall(t1[86])
+    warn("[THS v4.0] UI build failed: " .. tostring(t6[114]))
+    t2[10].unload()
+end
