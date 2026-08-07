@@ -1,0 +1,36 @@
+-- LocalScript (put this in StarterPlayerScripts or run with an executor)
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+local function setupCharacter(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    -- Set speed to 100
+    humanoid.WalkSpeed = 100
+    
+    -- Optional: higher jump power (you can change this number)
+    humanoid.JumpPower = 50
+end
+
+-- Apply when character spawns / respawns
+if player.Character then
+    setupCharacter(player.Character)
+end
+
+player.CharacterAdded:Connect(setupCharacter)
+
+-- Infinite Jump
+UserInputService.JumpRequest:Connect(function()
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+print("100 Speed + Infinite Jump loaded!")
